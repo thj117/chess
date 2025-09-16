@@ -71,7 +71,7 @@ public class ChessPiece {
                 int [][] kingDirections = {
                         {1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1},{0,1} // directions a king can move
                 };
-                kingMove(board, myPosition, moves, kingDirections);
+                kPieceMove(board, myPosition, moves, kingDirections);
             }
             case QUEEN -> {
                 int [][] queenDirections = {
@@ -89,6 +89,7 @@ public class ChessPiece {
                 int [][] knightDirections = {
                         {2,1},{2,-1},{1,-2},{-1,-2},{-2,-1},{-2,1},{-1,2},{1,2} // directions a knight can move
                 };
+                kPieceMove(board, myPosition, moves, knightDirections);
             }
             case PAWN -> {
                 int [][] pawnDirections = {
@@ -126,7 +127,7 @@ public class ChessPiece {
         }
     }
 
-    private void kingMove(ChessBoard board, ChessPosition position, List<ChessMove> moves, int [][] directions){
+    private void kPieceMove(ChessBoard board, ChessPosition position, List<ChessMove> moves, int [][] directions){
         int startRow = position.getRow();
         int startCol = position.getColumn();
 
