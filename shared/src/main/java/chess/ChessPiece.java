@@ -3,6 +3,7 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a single chess piece
@@ -58,40 +59,89 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         ChessPiece piece = board.getPiece(myPosition);
+        List<ChessMove> moves = new ArrayList<>(); // list of all the possible moves
         switch(type) {
             case BISHOP -> {
                 int [][] bishopDirections = {
-                        {1,1},{1,-1},{-1,1},{-1,-1}
+                        {1,1},{1,-1},{-1,1},{-1,-1} // directions a bishop can move
                 };
+                slidingMove(board, myPosition,moves, bishopDirections);
             }
             case KING -> {
                 int [][] kingDirections = {
-                        {1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1},{0,1}
+                        {1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1},{0,1} // directions a king can move
                 };
             }
             case QUEEN -> {
                 int [][] queenDirections = {
-                        {1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1},{0,1}
+                        {1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1},{0,1} // directions a queen can move
                 };
             }
             case ROOK -> {
                 int [][] rookDirections = {
-                        {0,1},{1,0},{0,-1},{-1,0}
+                        {0,1},{1,0},{0,-1},{-1,0} // directions a rook can move
                 };
             }
             case KNIGHT -> {
                 int [][] knightDirections = {
-                        {2,1},{2,-1},{1,-2},{-1,-2},{-2,-1},{-2,1},{-1,2},{1,2}
+                        {2,1},{2,-1},{1,-2},{-1,-2},{-2,-1},{-2,1},{-1,2},{1,2} // directions a knight can move
                 };
             }
             case PAWN -> {
                 int [][] pawnDirections = {
-                        {0,1},{-1,1},{1,1}
+                        {0,1},{-1,1},{1,1} // directions a pawn can move
                 };
             }
 
         }
-        return List.of();
+        return moves;
     }
 
+    private void slidingMove (ChessBoard board, ChessPosition position, List<ChessMove> moves, int[][] directions) {
+        int startRow = position.getRow();
+        int startCol = position.getColumn();
+
+        for (int[] dir: directions) {  // iterating through all the directions
+            int row = startRow + dir[0];
+            int col = startCol + dir[1];
+
+            while (row >= 1 && row <= 8 && col <= 8 && col >= 1) {// while loop to make sure that I am staying within the bounds of the map
+                ChessPosition newpos = new ChessPosition(row,col);
+                ChessPiece ocupied = board.getPiece(newpos); // checking if the space is occupied
+                if (ocupied == null) {
+                    moves.add(new ChessMove(position, newpos, null));
+                } else {
+                    if (ocupied.getTeamColor() != this.pieceColor) {
+                        moves.add(new ChessMove(position, newpos, null ));
+                    }
+                    break;
+                }
+            row += dir[0];
+            col += dir[1];
+
+            }
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "ChessPiece{" +
+                "pieceColor=" + pieceColor +
+                ", type=" + type +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessPiece that = (ChessPiece) o;
+        return pieceColor == that.pieceColor && type == that.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(pieceColor, type);
+    }
 }
