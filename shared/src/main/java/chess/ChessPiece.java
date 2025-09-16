@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -19,6 +20,9 @@ public class ChessPiece {
         this.type = type;
     }
 
+
+
+    public enum TeamColor { WHITE, BLACK}
     /**
      * The various different chess piece options
      */
@@ -53,11 +57,41 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ChessPiece piece = board.getpiece(myPosition);
-        if (piece.getPieceType() == PieceType.BISHOP) {
-            return List.of(new ChessMove(new ChessPosition(5,4), new ChessPosition(1,8), null));
-        }
+        ChessPiece piece = board.getPiece(myPosition);
+        switch(type) {
+            case BISHOP -> {
+                int [][] bishopDirections = {
+                        {1,1},{1,-1},{-1,1},{-1,-1}
+                };
+            }
+            case KING -> {
+                int [][] kingDirections = {
+                        {1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1},{0,1}
+                };
+            }
+            case QUEEN -> {
+                int [][] queenDirections = {
+                        {1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1},{0,1}
+                };
+            }
+            case ROOK -> {
+                int [][] rookDirections = {
+                        {0,1},{1,0},{0,-1},{-1,0}
+                };
+            }
+            case KNIGHT -> {
+                int [][] knightDirections = {
+                        {2,1},{2,-1},{1,-2},{-1,-2},{-2,-1},{-2,1},{-1,2},{1,2}
+                };
+            }
+            case PAWN -> {
+                int [][] pawnDirections = {
+                        {0,1},{-1,1},{1,1}
+                };
+            }
 
+        }
         return List.of();
     }
+
 }
