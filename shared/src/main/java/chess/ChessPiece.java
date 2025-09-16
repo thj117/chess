@@ -71,6 +71,7 @@ public class ChessPiece {
                 int [][] kingDirections = {
                         {1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1},{0,1} // directions a king can move
                 };
+                kingMove(board, myPosition, moves, kingDirections);
             }
             case QUEEN -> {
                 int [][] queenDirections = {
@@ -121,6 +122,28 @@ public class ChessPiece {
             row += dir[0];
             col += dir[1];
 
+            }
+        }
+    }
+
+    private void kingMove(ChessBoard board, ChessPosition position, List<ChessMove> moves, int [][] directions){
+        int startRow = position.getRow();
+        int startCol = position.getColumn();
+
+        for (int[] dir: directions) {  // iterating through all the directions
+            int row = startRow + dir[0];
+            int col = startCol + dir[1];
+
+            if (row >= 1 && row <= 8 && col <= 8 && col >= 1) {
+                ChessPosition newpos = new ChessPosition(row, col);
+                ChessPiece ocupied = board.getPiece(newpos); // checking if the space is occupied
+                if (ocupied == null) {
+                    moves.add(new ChessMove(position, newpos, null));
+                } else {
+                    if (ocupied.getTeamColor() != this.pieceColor) {
+                        moves.add(new ChessMove(position, newpos, null));
+                    }
+                }
             }
         }
     }
