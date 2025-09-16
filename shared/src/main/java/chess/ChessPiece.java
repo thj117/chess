@@ -76,11 +76,13 @@ public class ChessPiece {
                 int [][] queenDirections = {
                         {1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1},{0,1} // directions a queen can move
                 };
+                slidingMove(board, myPosition,moves, queenDirections);
             }
             case ROOK -> {
                 int [][] rookDirections = {
                         {0,1},{1,0},{0,-1},{-1,0} // directions a rook can move
                 };
+                slidingMove(board, myPosition,moves, rookDirections);
             }
             case KNIGHT -> {
                 int [][] knightDirections = {
