@@ -71,7 +71,7 @@ public class ChessPiece {
                 int [][] kingDirections = {
                         {1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1},{0,1} // directions a king can move
                 };
-                kPieceMove(board, myPosition, moves, kingDirections);
+                slidingMove(board, myPosition, moves, kingDirections);
             }
             case QUEEN -> {
                 int [][] queenDirections = {
@@ -89,7 +89,7 @@ public class ChessPiece {
                 int [][] knightDirections = {
                         {2,1},{2,-1},{1,-2},{-1,-2},{-2,-1},{-2,1},{-1,2},{1,2} // directions a knight can move
                 };
-                kPieceMove(board, myPosition, moves, knightDirections);
+                slidingMove(board, myPosition, moves, knightDirections);
             }
             case PAWN -> {
                 int [][] pawnDirections = {
@@ -120,6 +120,12 @@ public class ChessPiece {
                     }
                     break;
                 }
+            if (getPieceType() == PieceType.KNIGHT) {
+                break;
+            }
+            if (getPieceType() == PieceType.KING) {
+                break;
+            }
             row += dir[0];
             col += dir[1];
 
@@ -127,27 +133,7 @@ public class ChessPiece {
         }
     }
 
-    private void kPieceMove(ChessBoard board, ChessPosition position, List<ChessMove> moves, int [][] directions){
-        int startRow = position.getRow();
-        int startCol = position.getColumn();
 
-        for (int[] dir: directions) {  // iterating through all the directions
-            int row = startRow + dir[0];
-            int col = startCol + dir[1];
-
-            if (row >= 1 && row <= 8 && col <= 8 && col >= 1) {
-                ChessPosition newpos = new ChessPosition(row, col);
-                ChessPiece ocupied = board.getPiece(newpos); // checking if the space is occupied
-                if (ocupied == null) {
-                    moves.add(new ChessMove(position, newpos, null));
-                } else {
-                    if (ocupied.getTeamColor() != this.pieceColor) {
-                        moves.add(new ChessMove(position, newpos, null));
-                    }
-                }
-            }
-        }
-    }
 
     @Override
     public String toString() {
