@@ -22,8 +22,6 @@ public class ChessPiece {
     }
 
 
-
-    public enum TeamColor { WHITE, BLACK}
     /**
      * The various different chess piece options
      */
@@ -95,6 +93,7 @@ public class ChessPiece {
                 int [][] pawnDirections = {
                         {0,1},{-1,1},{1,1} // directions a pawn can move
                 };
+                pawnMoves(board, myPosition, moves);
             }
 
         }
@@ -133,7 +132,52 @@ public class ChessPiece {
         }
     }
 
+    private void pawnMoves (ChessBoard board, ChessPosition position, List<ChessMove> moves) {
+        int direction = (this.pieceColor == ChessGame.TeamColor.WHITE) ? 1 : -1;
+        int startRow = position.getRow();
+        int startCol = position.getColumn();
+        int nextRow = startRow + direction;
 
+        if (nextRow >= 1 && nextRow <=8) { // moves forward one space
+            ChessPosition forward = new ChessPosition(nextRow, startCol);
+            if (board.getPiece(forward) == null){
+                pawnMovesPro(position, forward, moves);
+
+                int startingRow = (this.pieceColor == ChessGame.TeamColor.WHITE) ? 2:7; // giving the option to move two spaces forward at the beginning of the game
+                if (startRow == startingRow) {
+                    int doubleMove = startRow + 2 * direction;
+                    ChessPosition doubleForward = new ChessPosition(doubleMove, startCol);
+                    if (board.getPiece(doubleForward) == null) {
+                        moves.add(new ChessMove(position, doubleForward, null));
+                    }
+                }
+            }
+        }
+
+        int[] capturePiece = {startCol -1, startCol +1};
+        for (int col : capturePiece){
+            if (col >= 1 && col <= 8 && nextRow >= 1 && nextRow <= 8){
+                ChessPosition diaPos = new ChessPosition(nextRow, col);
+                ChessPiece ocupied = board.getPiece(diaPos);
+                if (ocupied != null && ocupied.getTeamColor() != this.pieceColor){
+                    pawnMovesPro(position, diaPos, moves);
+                }
+            }
+        }
+    }
+
+
+    private void pawnMovesPro (ChessPosition start, ChessPosition end, List<ChessMove> moves) {
+        int promoRow = (this.pieceColor == ChessGame.TeamColor.WHITE)? 8 : 1;
+        if(end.getRow() == promoRow){ // promotes pawn if it reaches the end
+            moves.add(new ChessMove(start, end, PieceType.QUEEN));
+            moves.add(new ChessMove(start, end, PieceType.ROOK));
+            moves.add(new ChessMove(start, end, PieceType.BISHOP));
+            moves.add(new ChessMove(start, end, PieceType.KNIGHT));
+        } else {
+            moves.add(new ChessMove(start, end, null));
+        }
+    }
 
     @Override
     public String toString() {
