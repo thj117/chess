@@ -80,7 +80,7 @@ public class ChessBoard {
 
     @Override
     public String toString() {
-        StringBuilder grid = new StringBuilder();
+        StringBuilder grid = new StringBuilder(); // to help see the board
         for (int row = 8; row >= 1; row--) {
             grid.append(" ");
             for (int col = 1; col <= 8; col++) {
