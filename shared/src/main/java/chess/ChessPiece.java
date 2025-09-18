@@ -119,10 +119,7 @@ public class ChessPiece {
                     }
                     break;
                 }
-            if (getPieceType() == PieceType.KNIGHT) {
-                break;
-            }
-            if (getPieceType() == PieceType.KING) {
+            if (getPieceType() == PieceType.KNIGHT || getPieceType() == PieceType.KING ) {
                 break;
             }
             row += dir[0];

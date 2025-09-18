@@ -53,8 +53,8 @@ public class ChessBoard {
         //Adding Rooks
         addPiece(new ChessPosition(1,1), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK));
         addPiece(new ChessPosition(1,8), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK));
-        addPiece(new ChessPosition(8,1), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK));
-        addPiece(new ChessPosition(1,8), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK));
+        addPiece(new ChessPosition(8,1), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK));
+        addPiece(new ChessPosition(8,8), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK));
 
         //Adding Knights
         addPiece(new ChessPosition(1, 2), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT));
@@ -80,9 +80,36 @@ public class ChessBoard {
 
     @Override
     public String toString() {
-        return "ChessBoard{" +
-                "squares=" + Arrays.toString(squares) +
-                '}';
+        StringBuilder grid = new StringBuilder();
+        for (int row = 8; row >= 1; row--) {
+            grid.append(" ");
+            for (int col = 1; col <= 8; col++) {
+                ChessPiece piece = getPiece(new ChessPosition(row, col));
+                if (piece == null) {
+                    grid.append(". ");
+                } else {
+                    grid.append(pieceSymb(piece)).append(" ");
+                }
+            }
+            grid.append("\n");
+        }
+        return (grid.toString());
+    }
+    private char pieceSymb(ChessPiece piece){
+        char symbol;
+        switch (piece.getPieceType()){
+            case KING -> symbol = 'K';
+            case QUEEN -> symbol = 'Q';
+            case BISHOP -> symbol = 'B';
+            case KNIGHT -> symbol = 'N';
+            case ROOK -> symbol = 'R';
+            case PAWN -> symbol = 'P';
+            default -> symbol = '?';
+        }
+        if (piece.getTeamColor() == ChessGame.TeamColor.BLACK){
+            symbol = Character.toLowerCase(symbol);
+        }
+        return symbol;
     }
 
     @Override
