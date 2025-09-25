@@ -56,7 +56,6 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ChessPiece piece = board.getPiece(myPosition);
         List<ChessMove> moves = new ArrayList<>(); // list of all the possible moves
         switch(type) {
             case BISHOP -> {
@@ -90,9 +89,6 @@ public class ChessPiece {
                 slidingMove(board, myPosition, moves, knightDirections);
             }
             case PAWN -> {
-                int [][] pawnDirections = {
-                        {0,1},{-1,1},{1,1} // directions a pawn can move
-                };
                 pawnMoves(board, myPosition, moves);
             }
 
