@@ -3,6 +3,7 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -80,7 +81,30 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+        ChessPiece piece = board.getPiece(move.getStartPosition());
+        //no piece at that square to move
+        if (piece == null){
+            throw new InvalidMoveException("No Piece at that square");
+        }
+        //throw exception if trying to move wrong piece
+        if (piece.getTeamColor() != currentTurn){
+            throw new InvalidMoveException("It is not" + piece.getTeamColor() + "turn");
+        }
+        //check for illegal moves
+        Collection<ChessMove> legalMoves = validMoves(move.getStartPosition());
+        if (legalMoves == null || !legalMoves.contains(move)){
+            throw new InvalidMoveException("Illegal Move");
+        }
+        //making a move
+        board.addPiece(move.getEndPosition(), piece);
+        board.addPiece(move.getStartPosition(), null);
+        //promotion move
+        if (move.getPromotionPiece() != null){
+            board.addPiece(move.getEndPosition(), new ChessPiece(piece.getTeamColor(), move.getPromotionPiece()));
+        }
+
+        //switching the turns of the pieces.
+        currentTurn = currentTurn.opposite();
     }
 
     /**
@@ -134,5 +158,19 @@ public class ChessGame {
 
     private boolean KingInCheck(ChessMove move, TeamColor color){
         return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessGame chessGame = (ChessGame) o;
+        return Objects.equals(board, chessGame.board) && currentTurn == chessGame.currentTurn;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(board, currentTurn);
     }
 }
