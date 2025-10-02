@@ -14,13 +14,29 @@ import java.util.Objects;
 public class ChessBoard {
 
 
-    ChessPiece [][] squares = new ChessPiece[8][8];
+    private ChessPiece [][] squares = new ChessPiece[8][8];
     /**
      * Copy constructor: creates a deep copy of another ChessBoard
      */
     public ChessBoard(){
     }
+    // Private copy constructor (hidden)
+    private ChessBoard(ChessBoard other) {
+        this.squares = new ChessPiece[8][8];
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                ChessPiece piece = other.squares[row][col];
+                if (piece != null) {
+                    this.squares[row][col] = new ChessPiece(piece.getTeamColor(), piece.getPieceType());
+                }
+            }
+        }
+    }
 
+    //Static factory method for clarity
+    public static ChessBoard copyOf(ChessBoard other) {
+        return new ChessBoard(other);
+    }
 
     /**
      * Adds a chess piece to the chessboard

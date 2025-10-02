@@ -178,7 +178,7 @@ public class ChessGame {
 
 
     private boolean KingInCheck(ChessMove move, TeamColor color){
-        ChessBoard clone = new ChessBoard();
+        ChessBoard clone = ChessBoard.copyOf(board);
         ChessPiece movingPiece = clone.getPiece(move.getStartPosition());
 
         clone.addPiece(move.getEndPosition(), movingPiece);
