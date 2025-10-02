@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.zip.CheckedInputStream;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -114,7 +115,8 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        ChessPosition kingPos = board.findKing(teamColor);
+        return board.isSquareAttacked(kingPos, teamColor.opposite());
     }
 
     /**
@@ -124,7 +126,16 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        if (!isInCheck(teamColor)) return false;
+
+        for (ChessPosition pos : board.allTeamPosition(teamColor)){
+            Collection<ChessMove> moves = validMoves(pos);
+            if (moves != null && !moves.isEmpty()){
+                return false;
+            }
+        }
+        return true;
+
     }
 
     /**
@@ -135,7 +146,15 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        if (isInCheck(teamColor)) return false;
+
+        for (ChessPosition pos : board.allTeamPosition(teamColor)){
+            Collection<ChessMove> moves = validMoves(pos);
+            if (moves != null && !moves.isEmpty()){
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
