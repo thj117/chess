@@ -156,8 +156,24 @@ public class ChessGame {
         return board;
     }
 
+
+
     private boolean KingInCheck(ChessMove move, TeamColor color){
-        return true;
+        ChessBoard clone = new ChessBoard();
+        ChessPiece movingPiece = clone.getPiece(move.getStartPosition());
+
+        clone.addPiece(move.getEndPosition(), movingPiece);
+        clone.addPiece(move.getStartPosition(), null);
+
+        if (move.getPromotionPiece() != null) {
+            clone.addPiece(move.getEndPosition(),
+                    new ChessPiece(movingPiece.getTeamColor(), move.getPromotionPiece()));
+        }
+
+        ChessPosition kingPos = clone.findKing(color);
+        return clone.isSquareAttacked(kingPos, color.opposite());
+
+
     }
 
     @Override

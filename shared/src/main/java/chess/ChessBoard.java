@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -76,6 +77,42 @@ public class ChessBoard {
         addPiece(new ChessPosition(1, 5), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KING));
         addPiece(new ChessPosition(8, 5), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KING));
 
+    }
+
+    public ChessPosition findKing(ChessGame.TeamColor team) {
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition pos = new ChessPosition(row, col);
+                ChessPiece piece = getPiece(pos);
+
+                if (piece != null &&
+                        piece.getPieceType() == ChessPiece.PieceType.KING &&
+                        piece.getTeamColor() == team) {
+                    return pos;
+                }
+            }
+        }
+        return null; // should never happen in a valid game
+    }
+
+    public boolean isSquareAttacked(ChessPosition target, ChessGame.TeamColor byTeam) {
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition pos = new ChessPosition(row, col);
+                ChessPiece piece = getPiece(pos);
+
+                if (piece != null && piece.getTeamColor() == byTeam) {
+                    Collection<ChessMove> moves = piece.pieceMoves(this, pos);
+
+                    for (ChessMove move : moves) {
+                        if (move.getEndPosition().equals(target)) {
+                            return true; // square is attacked
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     @Override
