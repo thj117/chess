@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
@@ -14,9 +15,13 @@ public class ChessBoard {
 
 
     ChessPiece [][] squares = new ChessPiece[8][8];
-    public ChessBoard() {
-        
+    /**
+     * Copy constructor: creates a deep copy of another ChessBoard
+     */
+    public ChessBoard(){
     }
+
+
     /**
      * Adds a chess piece to the chessboard
      *
@@ -113,6 +118,21 @@ public class ChessBoard {
             }
         }
         return false;
+    }
+
+    public Collection<ChessPosition> allTeamPosition(ChessGame.TeamColor color){
+        Collection<ChessPosition> positions = new ArrayList<>();
+        for (int row = 1; row <=8; row++){
+            for (int col = 1; col <=8; col++){
+                ChessPosition pos = new ChessPosition(row, col);
+                ChessPiece piece = getPiece(pos);
+                if (piece != null && piece.getTeamColor() == color){
+                    positions.add(pos);
+                }
+
+            }
+        }
+        return positions;
     }
 
     @Override
