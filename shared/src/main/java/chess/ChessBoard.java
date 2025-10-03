@@ -19,7 +19,6 @@ public class ChessBoard {
      * Copy constructor: creates a deep copy of another ChessBoard
      */
     public ChessBoard(){
-        resetBoard();
     }
     // Private copy constructor (hidden)
     private ChessBoard(ChessBoard other) {
