@@ -69,7 +69,7 @@ public class ChessGame {
         List<ChessMove> legalMoves = new ArrayList<>();
 
         for(ChessMove move: candidateMoves){
-            if(!KingInCheck(move, piece.getTeamColor())){
+            if(!kingInCheck(move, piece.getTeamColor())){
                 legalMoves.add(move);
             }
         }
@@ -178,7 +178,7 @@ public class ChessGame {
 
 
 
-    private boolean KingInCheck(ChessMove move, TeamColor color){
+    private boolean kingInCheck(ChessMove move, TeamColor color){
         ChessBoard clone = ChessBoard.copyOf(board);
         ChessPiece movingPiece = clone.getPiece(move.getStartPosition());
 

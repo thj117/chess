@@ -136,7 +136,8 @@ public class ChessPiece {
             if (board.getPiece(forward) == null){
                 pawnMovesPro(position, forward, moves);
 
-                int startingRow = (this.pieceColor == ChessGame.TeamColor.WHITE) ? 2:7; // giving the option to move two spaces forward at the beginning of the game
+                // giving the option to move two spaces forward at the beginning of the game
+                int startingRow = (this.pieceColor == ChessGame.TeamColor.WHITE) ? 2:7;
                 if (startRow == startingRow) {
                     int doubleMove = startRow + 2 * direction;
                     ChessPosition doubleForward = new ChessPosition(doubleMove, startCol);
