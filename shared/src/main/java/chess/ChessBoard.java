@@ -99,7 +99,7 @@ public class ChessBoard {
         addPiece(new ChessPosition(8, 5), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KING));
 
     }
-    // helper to find the king position on the board
+    // Helper to find the king position on the board
     public ChessPosition findKing(ChessGame.TeamColor team) {
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {
@@ -116,28 +116,34 @@ public class ChessBoard {
         return null; // should never happen in a valid game
     }
 
-    //helper for checking if the square is being attacked for check
+    // Helper for checking if the square is being attacked for check
     public boolean isSquareAttacked(ChessPosition target, ChessGame.TeamColor byTeam) {
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {
                 ChessPosition pos = new ChessPosition(row, col);
-                ChessPiece piece = getPiece(pos);
+                if (isSquareAttacking(pos, target, byTeam)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    // Method added to break down the nesting depth
+    private boolean isSquareAttacking(ChessPosition position, ChessPosition target, ChessGame.TeamColor byTeam){
+        ChessPiece piece = getPiece(position);
+        if (piece != null && piece.getTeamColor() == byTeam) {
+            Collection<ChessMove> moves = piece.pieceMoves(this, position);
 
-                if (piece != null && piece.getTeamColor() == byTeam) {
-                    Collection<ChessMove> moves = piece.pieceMoves(this, pos);
-
-                    for (ChessMove move : moves) {
-                        if (move.getEndPosition().equals(target)) {
-                            return true; // square is attacked
-                        }
-                    }
+            for (ChessMove move : moves) {
+                if (move.getEndPosition().equals(target)) {
+                    return true; // square is attacked
                 }
             }
         }
         return false;
     }
 
-    // get the positions of pieces on the board
+    // Get the positions of pieces on the board
     public Collection<ChessPosition> allTeamPosition(ChessGame.TeamColor color){
         Collection<ChessPosition> positions = new ArrayList<>();
         for (int row = 1; row <=8; row++){
