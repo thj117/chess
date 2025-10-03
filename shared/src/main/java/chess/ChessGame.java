@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.zip.CheckedInputStream;
-
 /**
  * For a class that can manage a chess game, making moves on a board
  * <p>
@@ -23,7 +21,6 @@ public class ChessGame {
         this.currentTurn = TeamColor.WHITE;
 
     }
-
     /**
      * @return Which team's turn it is
      */
@@ -127,7 +124,9 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        if (!isInCheck(teamColor)) return false;
+        if (!isInCheck(teamColor)) { // check if the is in check
+            return false;
+        }
 
         for (ChessPosition pos : board.allTeamPosition(teamColor)){
             Collection<ChessMove> moves = validMoves(pos);
@@ -147,8 +146,10 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        if (isInCheck(teamColor)) return false;
-
+        if (isInCheck(teamColor)) {
+            return false;
+        }
+        //checking if there are any possible moves to make
         for (ChessPosition pos : board.allTeamPosition(teamColor)){
             Collection<ChessMove> moves = validMoves(pos);
             if (moves != null && !moves.isEmpty()){
@@ -192,8 +193,6 @@ public class ChessGame {
 
         ChessPosition kingPos = clone.findKing(color);
         return clone.isSquareAttacked(kingPos, color.opposite());
-
-
     }
 
     @Override
@@ -202,7 +201,8 @@ public class ChessGame {
             return false;
         }
         ChessGame chessGame = (ChessGame) o;
-        return Objects.equals(board, chessGame.board) && currentTurn == chessGame.currentTurn;
+        return Objects.equals(board, chessGame.board)
+                && currentTurn == chessGame.currentTurn;
     }
 
     @Override

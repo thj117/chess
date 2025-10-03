@@ -99,7 +99,7 @@ public class ChessBoard {
         addPiece(new ChessPosition(8, 5), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KING));
 
     }
-
+    // helper to find the king position on the board
     public ChessPosition findKing(ChessGame.TeamColor team) {
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {
@@ -116,6 +116,7 @@ public class ChessBoard {
         return null; // should never happen in a valid game
     }
 
+    //helper for checking if the square is being attacked for check
     public boolean isSquareAttacked(ChessPosition target, ChessGame.TeamColor byTeam) {
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {
@@ -136,6 +137,7 @@ public class ChessBoard {
         return false;
     }
 
+    // get the positions of pieces on the board
     public Collection<ChessPosition> allTeamPosition(ChessGame.TeamColor color){
         Collection<ChessPosition> positions = new ArrayList<>();
         for (int row = 1; row <=8; row++){

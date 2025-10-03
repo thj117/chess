@@ -104,7 +104,8 @@ public class ChessPiece {
             int row = startRow + dir[0];
             int col = startCol + dir[1];
 
-            while (row >= 1 && row <= 8 && col <= 8 && col >= 1) {// while loop to make sure that I am staying within the bounds of the map
+            // while loop to make sure that I am staying within the bounds of the map
+            while (row >= 1 && row <= 8 && col <= 8 && col >= 1) {
                 ChessPosition newpos = new ChessPosition(row,col);
                 ChessPiece ocupied = board.getPiece(newpos); // checking if the space is occupied
                 if (ocupied == null) {
