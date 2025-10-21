@@ -37,7 +37,21 @@ public class UserService {
         return new RegisterResult(u.username(), token);
     }
 
+    public LoginResult login(LoginRequest log) throws DataAccessException, IllegalArgumentException{
+        if (log == null || log.password() == null|| log.username() == null){
+            throw new IllegalArgumentException("bad request");
+        }
+        var maybe = dao.getUser(log.username());
+        if (maybe.isEmpty()) throw new DataAccessException("Unauthorized");
+        UserData u = maybe.get();
+        if(!u.password().equals(log.password())) throw new DataAccessException("Unauthorized");
 
+        String token = generateToken();
+        AuthData a = new AuthData(token, u.username());
+        dao.createAuth(a);
+        return new LoginResult(u.username(), token);
+
+    }
 
     public static String generateToken() {
         return UUID.randomUUID().toString();
