@@ -95,6 +95,23 @@ public class Server {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
         });
+
+        // Join Game
+        javalin.put("/game", ctx -> {
+            try {
+                String token = ctx.header("authorization");
+                JoinGameRequest req = gson.fromJson(ctx.body(), JoinGameRequest.class);
+                gameService.joinGame(token, req);
+                ctx.status(200).result("{}");
+            } catch (DataAccessException e) {
+                String msg = e.getMessage();
+                if ("bad request".equals(msg)) ctx.status(400).json(Map.of("message", "Error: bad request"));
+                else if ("already taken".equals(msg)) ctx.status(403).json(Map.of("message", "Error: already taken"));
+                else ctx.status(401).json(Map.of("message", "Error: unauthorized"));
+            } catch (Exception e) {
+                ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
+            }
+        });
     }
 
     public int run(int desiredPort) {
