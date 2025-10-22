@@ -30,8 +30,30 @@ public class userServiceTests {
     public void register_duplicate_fail() throws Exception {
         var req = new RegisterRequest("bob", "pw", "b@b.com");
         userService.register(req);
+
         // second register should throw DataAccessException with message "already taken"
         DataAccessException ex = assertThrows(DataAccessException.class, () -> userService.register(req));
         assertEquals("already taken", ex.getMessage());
+    }
+
+    @Test
+    public void login_success() throws Exception {
+        var req = new RegisterRequest("c", "pw", "c@c.com");
+        var r = userService.register(req);
+
+        var loginReq = new LoginRequest("c", "pw");
+        var res = userService.login(loginReq);
+        assertEquals("c", res.username());
+        assertNotNull(res.authToken());
+    }
+
+    @Test
+    public void login_wrong_password_fail() throws Exception {
+        var req = new RegisterRequest("d", "pw", "d@d.com");
+        userService.register(req);
+
+        var loginReq = new LoginRequest("d", "wrong");
+        DataAccessException ex = assertThrows(DataAccessException.class, () -> userService.login(loginReq));
+        assertEquals("Unauthorized", ex.getMessage());
     }
 }
