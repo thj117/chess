@@ -53,6 +53,13 @@ public class UserService {
 
     }
 
+    public void logout(String authToken) throws DataAccessException {
+        if (authToken == null || dao.getAuth(authToken).isEmpty()){
+            throw new DataAccessException("unauthorized");
+        }
+        dao.deleteAuth(authToken);
+    }
+
     public static String generateToken() {
         return UUID.randomUUID().toString();
     }

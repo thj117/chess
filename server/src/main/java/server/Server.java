@@ -69,6 +69,18 @@ public class Server {
             }
         });
 
+        javalin.delete("/session", ctx -> {
+            try{
+                String token = ctx.header("authorization");
+                userService.logout(token);
+                ctx.status(200).result("{}");
+            } catch (DataAccessException e) {
+                ctx.status(401).json(Map.of("message", "Error: unauthorized"));
+            } catch (Exception e) {
+                ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
+            }
+        });
+
     }
 
     public int run(int desiredPort) {
