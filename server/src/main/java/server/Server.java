@@ -4,10 +4,12 @@ import com.google.gson.Gson;
 import dataaccess.DataAccess;
 import dataaccess.InMemoryDataAccess;
 import dataaccess.DataAccessException;
-import io.javalin.*;
-import service.RegisterRequest;
-import service.RegisterResult;
-import service.UserService;
+import model.AuthData;
+import model.UserData;
+import service.*;
+import io.javalin.Javalin;
+import io.javalin.http.Context;
+import io.javalin.http.Handler;
 
 import java.util.Map;
 
@@ -17,10 +19,20 @@ public class Server {
     private final Gson gson = new Gson();
     private final DataAccess dao = new InMemoryDataAccess();
     private final UserService userService = new UserService(dao);
-
+    private final GameService gameService = new GameService(dao);
 
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
+
+        // Clear DB
+        javalin.delete("/db", ctx -> {
+            try {
+                gameService.clear();
+                ctx.status(200).result("{}");
+            } catch (Exception ex) {
+                ctx.status(500).json(Map.of("message", "Error: " + ex.getMessage()));
+            }
+        });
 
         // Register
         javalin.post("/user", ctx -> {
