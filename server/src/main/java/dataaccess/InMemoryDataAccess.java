@@ -54,14 +54,14 @@ public class InMemoryDataAccess implements DataAccess {
     @Override
     public int createGame(GameData g) throws DataAccessException {
         int id = gameIdCounter.getAndIncrement();
-        GameData stored = new GameData(id, g.whiteUsername(), g.blackUsername(), g.gameName(), g.game());
-        games.put(id, stored);
+        GameData toStore = new GameData(id, g.whiteUsername(), g.blackUsername(), g.gameName(), g.game());
+        games.put(id, toStore);
         return id;
     }
 
     @Override
     public Optional<GameData> getGame(int gameID) throws DataAccessException {
-        return Optional.empty();
+        return Optional.ofNullable(games.get(gameID));
     }
 
     @Override
@@ -71,7 +71,9 @@ public class InMemoryDataAccess implements DataAccess {
 
     @Override
     public void updateGame(GameData g) throws DataAccessException {
-
+        int id = g.gameID();
+        if (!games.containsKey(id)) throw new DataAccessException("game not found");
+        games.put(id, g);
     }
 
 

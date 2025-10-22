@@ -112,6 +112,19 @@ public class Server {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
         });
+
+        // List Games
+        javalin.get("/game", ctx -> {
+            try {
+                String token = ctx.header("authorization");
+                ListGamesResult res = gameService.listGames(token);
+                ctx.status(200).json(Map.of("games", res.games()));
+            } catch (DataAccessException e) {
+                ctx.status(401).json(Map.of("message", "Error: unauthorized"));
+            } catch (Exception e) {
+                ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
+            }
+        });
     }
 
     public int run(int desiredPort) {
