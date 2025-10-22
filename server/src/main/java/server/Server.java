@@ -53,6 +53,22 @@ public class Server {
             }
         });
 
+        // Login
+
+        javalin.post("/session", ctx -> {
+            try {
+                LoginRequest req = gson.fromJson(ctx.body(), LoginRequest.class);
+                LoginResult result = userService.login(req);
+                ctx.status(200).json(result);
+            } catch (IllegalArgumentException e) {
+                ctx.status(400).json((Map.of("message", "Error: bad request")));
+            } catch (DataAccessException e) {
+                ctx.status(401).json(Map.of("message", "Error: unauthorized"));
+            } catch (Exception e) {
+                ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
+            }
+        });
+
     }
 
     public int run(int desiredPort) {
