@@ -54,6 +54,13 @@ public class userServiceTests {
 
         var loginReq = new LoginRequest("d", "wrong");
         DataAccessException ex = assertThrows(DataAccessException.class, () -> userService.login(loginReq));
-        assertEquals("Unauthorized", ex.getMessage());
+        assertEquals("unauthorized", ex.getMessage());
     }
+
+    @Test
+    public void logout_invalid_token_fail() {
+        DataAccessException ex = assertThrows(DataAccessException.class, () -> userService.logout("nope"));
+        assertEquals("unauthorized", ex.getMessage());
+    }
+
 }

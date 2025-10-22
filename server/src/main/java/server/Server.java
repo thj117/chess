@@ -54,7 +54,6 @@ public class Server {
         });
 
         // Login
-
         javalin.post("/session", ctx -> {
             try {
                 LoginRequest req = gson.fromJson(ctx.body(), LoginRequest.class);

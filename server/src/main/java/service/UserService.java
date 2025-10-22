@@ -42,9 +42,9 @@ public class UserService {
             throw new IllegalArgumentException("bad request");
         }
         var maybe = dao.getUser(log.username());
-        if (maybe.isEmpty()) throw new DataAccessException("Unauthorized");
+        if (maybe.isEmpty()) throw new DataAccessException("unauthorized");
         UserData u = maybe.get();
-        if(!u.password().equals(log.password())) throw new DataAccessException("Unauthorized");
+        if(!u.password().equals(log.password())) throw new DataAccessException("unauthorized");
 
         String token = generateToken();
         AuthData a = new AuthData(token, u.username());
