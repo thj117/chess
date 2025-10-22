@@ -25,4 +25,13 @@ public class GameService {
         if (maybe.isEmpty()) throw new DataAccessException("unauthorized");
         return maybe.get().username();
     }
+
+    public CreateGameResult createGame(String authToken, CreateGameRequest req) throws DataAccessException {
+        String username = verifyAuth(authToken);
+        if (req == null || req.gameName() == null) throw new DataAccessException("bad request");
+        // new game: creator is not automatically assigned to white/black
+        GameData g = new GameData(0, null, null, req.gameName(), new ChessGame());
+        int id = dao.createGame(g);
+        return new CreateGameResult(id);
+    }
 }

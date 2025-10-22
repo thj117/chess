@@ -68,6 +68,7 @@ public class Server {
             }
         });
 
+        // Logout
         javalin.delete("/session", ctx -> {
             try{
                 String token = ctx.header("authorization");
@@ -80,6 +81,20 @@ public class Server {
             }
         });
 
+        // Create Game
+        javalin.post("/game", ctx -> {
+            try {
+                String token = ctx.header("authorization");
+                CreateGameRequest req = gson.fromJson(ctx.body(), CreateGameRequest.class);
+                CreateGameResult res = gameService.createGame(token, req);
+                ctx.status(200).json(Map.of("gameID", res.gameID()));
+            } catch (DataAccessException e) {
+                if ("bad request".equals(e.getMessage())) ctx.status(400).json(Map.of("message", "Error: bad request"));
+                else ctx.status(401).json(Map.of("message", "Error: unauthorized"));
+            } catch (Exception e) {
+                ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
+            }
+        });
     }
 
     public int run(int desiredPort) {
