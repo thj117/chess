@@ -17,7 +17,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void registering_success() throws Exception {
+    public void registeringSuccess() throws Exception {
         var req = new RegisterRequest("alice", "pw", "a@a.com");
         var res = userService.register(req);
         assertEquals("alice", res.username());
@@ -27,7 +27,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void registering_duplicate_fail() throws Exception {
+    public void registeringDuplicateFail() throws Exception {
         var req = new RegisterRequest("bob", "pw", "b@b.com");
         userService.register(req);
 
@@ -37,7 +37,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void login_success() throws Exception {
+    public void loginSuccess() throws Exception {
         var req = new RegisterRequest("c", "pw", "c@c.com");
         var r = userService.register(req);
 
@@ -48,7 +48,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void login_Wrong_Password_Fail() throws Exception {
+    public void loginWrongPasswordFail() throws Exception {
         var req = new RegisterRequest("d", "pw", "d@d.com");
         userService.register(req);
 
@@ -58,7 +58,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void logout_success() throws
+    public void logoutSuccess() throws
             Exception {
             var reg = userService.register(new RegisterRequest("bob", "password", "email@email.com"));
             userService.logout(reg.authToken());
@@ -67,7 +67,7 @@ public class UserServiceTests {
 
 
     @Test
-    public void logout_invalid_token_fail() {
+    public void logoutInvalidTokenFail() {
         DataAccessException ex = assertThrows(DataAccessException.class, () -> userService.logout("nope"));
         assertEquals("unauthorized", ex.getMessage());
     }
