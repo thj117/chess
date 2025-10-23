@@ -58,6 +58,15 @@ public class userServiceTests {
     }
 
     @Test
+    public void logout_success() throws
+            Exception {
+            var reg = userService.register(new RegisterRequest("bob", "password", "email@email.com"));
+            userService.logout(reg.authToken());
+            assertTrue(dao.getAuth(reg.authToken()).isEmpty());
+        }
+
+
+    @Test
     public void logout_invalid_token_fail() {
         DataAccessException ex = assertThrows(DataAccessException.class, () -> userService.logout("nope"));
         assertEquals("unauthorized", ex.getMessage());

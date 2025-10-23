@@ -6,12 +6,15 @@ import model.AuthData;
 import model.GameData;
 import chess.ChessGame;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class GameService {
     private final DataAccess dao;
 
-    public GameService(DataAccess dao){
+    public GameService(DataAccess dao) {
         this.dao = dao;
     }
 
@@ -60,5 +63,16 @@ public class GameService {
         } else {
             throw new DataAccessException("bad request");
         }
+    }
+
+    public ListGamesResult listGames(String authToken) throws DataAccessException {
+        verifyAuth(authToken);
+
+        List<GameData> list = dao.listGames();
+        List<Object> result = new ArrayList<>();
+        for (GameData g : list) {
+            result.add(g);
+        }
+        return new ListGamesResult(result);
     }
 }
