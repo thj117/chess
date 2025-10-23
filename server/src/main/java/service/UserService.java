@@ -15,6 +15,10 @@ public class UserService {
         this.dao = dao;
     }
 
+    public void clear() throws DataAccessException {
+        dao.clear();
+    }
+
     public RegisterResult register(RegisterRequest req) throws DataAccessException, IllegalArgumentException{
         if (req == null || req.username() == null || req.password() == null || req.email() == null){
             throw new IllegalArgumentException("bad request");

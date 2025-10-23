@@ -5,17 +5,11 @@ import dataaccess.DataAccess;
 import dataaccess.InMemoryDataAccess;
 import dataaccess.DataAccessException;
 import io.javalin.json.JavalinGson;
-import model.AuthData;
-import model.UserData;
 import service.*;
 import io.javalin.Javalin;
-import io.javalin.http.Context;
-import io.javalin.http.Handler;
-
 import java.util.Map;
 
 public class Server {
-
     private final Javalin javalin;
     private final Gson gson = new Gson();
     private final DataAccess dao = new InMemoryDataAccess();

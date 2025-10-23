@@ -6,7 +6,7 @@ import dataaccess.DataAccessException;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class userServiceTests {
+public class UserServiceTests {
     private DataAccess dao;
     private UserService userService;
 

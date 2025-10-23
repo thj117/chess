@@ -3,16 +3,12 @@ package service;
 import dataaccess.DataAccess;
 import dataaccess.InMemoryDataAccess;
 import dataaccess.DataAccessException;
-import model.GameData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import service.GameService;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class gameServiceTests {
+public class GameServiceTests {
     private DataAccess dao;
     private UserService userService;
     private GameService gameService;
@@ -81,5 +77,15 @@ public class gameServiceTests {
         DataAccessException ex = assertThrows(DataAccessException.class, () ->gameService.joinGame(reg_2.authToken(),
                 new JoinGameRequest("WHITE", createRes.gameID())));
         assertEquals("already taken", ex.getMessage()) ;
+    }
+    @Test
+    public void clear_success() throws Exception{
+        var reg = userService.register(new RegisterRequest("u1", "p", "e"));
+        var createRes = gameService.createGame(reg.authToken(), new CreateGameRequest("My Game"));
+
+        userService.clear();
+        assertTrue(dao.listGames().isEmpty());
+        assertTrue(dao.getUser("u1").isEmpty());
+
     }
 }
