@@ -51,7 +51,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void GamesInListTestSuccess() throws Exception {
+    public void gamesInListTestSuccess() throws Exception {
         var r = userService.register(new RegisterRequest("u1", "p", "e"));
         var createRes = gameService.createGame(r.authToken(), new CreateGameRequest("My Game"));
         var createRes2 = gameService.createGame(r.authToken(), new CreateGameRequest("Your Game"));

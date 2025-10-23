@@ -21,8 +21,7 @@ public class Server {
             config.staticFiles.add("web");
             config.jsonMapper(new JavalinGson());
         });
-        // Clear DB
-        javalin.delete("/db", ctx -> {
+        javalin.delete("/db", ctx -> { // clear DB
             try {
                 gameService.clear();
                 ctx.status(200).result("{}");
