@@ -17,7 +17,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void register_Success() throws Exception {
+    public void registering_success() throws Exception {
         var req = new RegisterRequest("alice", "pw", "a@a.com");
         var res = userService.register(req);
         assertEquals("alice", res.username());
@@ -27,7 +27,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void register_Duplicate_Fail() throws Exception {
+    public void registering_duplicate_fail() throws Exception {
         var req = new RegisterRequest("bob", "pw", "b@b.com");
         userService.register(req);
 
@@ -37,7 +37,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void login_Success() throws Exception {
+    public void login_success() throws Exception {
         var req = new RegisterRequest("c", "pw", "c@c.com");
         var r = userService.register(req);
 

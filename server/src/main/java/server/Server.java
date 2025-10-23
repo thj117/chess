@@ -21,7 +21,6 @@ public class Server {
             config.staticFiles.add("web");
             config.jsonMapper(new JavalinGson());
         });
-
         // Clear DB
         javalin.delete("/db", ctx -> {
             try {
@@ -31,7 +30,6 @@ public class Server {
                 ctx.status(500).json(Map.of("message", "Error: " + ex.getMessage()));
             }
         });
-
         // Register
         javalin.post("/user", ctx -> {
             try {
@@ -50,7 +48,6 @@ public class Server {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
         });
-
         // Login
         javalin.post("/session", ctx -> {
             try {
@@ -65,7 +62,6 @@ public class Server {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
         });
-
         // Logout
         javalin.delete("/session", ctx -> {
             try{
@@ -78,7 +74,6 @@ public class Server {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
         });
-
         // Create Game
         javalin.post("/game", ctx -> {
             try {
@@ -88,12 +83,11 @@ public class Server {
                 ctx.status(200).json(Map.of("gameID", res.gameID()));
             } catch (DataAccessException e) {
                 if ("bad request".equals(e.getMessage())) {ctx.status(400).json(Map.of("message", "Error: bad request"));}
-                else ctx.status(401).json(Map.of("message", "Error: unauthorized"));
+                else {ctx.status(401).json(Map.of("message", "Error: unauthorized"));}
             } catch (Exception e) {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
         });
-
         // Join Game
         javalin.put("/game", ctx -> {
             try {
@@ -110,7 +104,6 @@ public class Server {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
         });
-
         // List Games
         javalin.get("/game", ctx -> {
             try {
