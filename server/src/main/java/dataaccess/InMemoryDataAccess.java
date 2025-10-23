@@ -72,7 +72,7 @@ public class InMemoryDataAccess implements DataAccess {
     @Override
     public void updateGame(GameData g) throws DataAccessException {
         int id = g.gameID();
-        if (!games.containsKey(id)) throw new DataAccessException("game not found");
+        if (!games.containsKey(id)) {throw new DataAccessException("game not found");}
         games.put(id, g);
     }
 
