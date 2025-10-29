@@ -29,6 +29,23 @@ public class DatabaseManager {
         }
     }
 
+    public static void createTables() throws DataAccessException{
+        try (var conn = getConnection(); var statement = conn.createStatement()){
+
+            //users table
+            statement.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS users (
+                    username VARCHAR(255) PRIMARY KEY,
+                    password VARCHAR(255) NOT NULL,
+                    email VARCHAR(255)
+                    ) 
+                    """);
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Create a connection to the database and sets the catalog based upon the
      * properties specified in db.properties. Connections to the database should
