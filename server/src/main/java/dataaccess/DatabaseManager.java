@@ -55,6 +55,15 @@ public class DatabaseManager {
                     )
                     """);
 
+            // auth table
+            statement.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS auth (
+                    authToken VARCHAR(255),
+                    username VARCHAR(255),
+                    FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+                    )
+                    """);
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
