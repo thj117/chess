@@ -41,6 +41,20 @@ public class DatabaseManager {
                     ) 
                     """);
 
+
+            // game table
+            statement.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS games (
+                    gameID INT AUTO_INCREMENT PRIMARY KEY,
+                    whiteUsername VARCHAR(255),
+                    blackUsername VARCHAR(225),
+                    gameName VARCHAR(255),
+                    game TEXT,
+                    FOREIGN KEY (whiteUsername) REFERENCES users(username) ON DELETE SET NULL,
+                    FOREIGN KEY (blackUsername) REFERENCES users(username) ON DELETE SET NULL
+                    )
+                    """);
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
