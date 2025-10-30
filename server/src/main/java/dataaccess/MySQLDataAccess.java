@@ -12,7 +12,18 @@ import java.util.Optional;
 public class MySQLDataAccess implements DataAccess{
     private final Gson gson = new Gson();
 
+    @Override
+    public void clear() throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection(); var statement = conn.createStatement()){
+            statement.executeUpdate("TRUNCATE TABLE auth");
+            statement.executeUpdate("TRUNCATE TABLE users");
+            statement.executeUpdate("TRUNCATE TABLE games");
+        } catch (Exception e) {
+            throw new DataAccessException(e.getMessage());
+        }
+    }
 
+    //user
     @Override
     public void createUser(UserData u) throws DataAccessException {
 
@@ -23,11 +34,7 @@ public class MySQLDataAccess implements DataAccess{
         return Optional.empty();
     }
 
-    @Override
-    public void clear() throws DataAccessException {
-
-    }
-
+    //auth
     @Override
     public void createAuth(AuthData a) throws DataAccessException {
 
@@ -43,6 +50,8 @@ public class MySQLDataAccess implements DataAccess{
 
     }
 
+
+    //games
     @Override
     public int createGame(GameData g) throws DataAccessException {
         return 0;
