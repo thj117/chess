@@ -5,20 +5,19 @@ import model.AuthData;
 import model.GameData;
 import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
-import org.xml.sax.SAXException;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+import model.*;
+import java.sql.*;
+import java.util.*;
 
 
 public class MySQLDataAccess implements DataAccess{
     private final Gson gson = new Gson();
 
-    public MySQLDataAccess() throws DataAccessException {
-        DatabaseManager.createDatabase();
-    }
 
     @Override
     public void clear() throws DataAccessException {
@@ -114,21 +113,78 @@ public class MySQLDataAccess implements DataAccess{
     //games
     @Override
     public int createGame(GameData g) throws DataAccessException {
-        return 0;
+        try (var conn = DatabaseManager.getConnection();
+             var stmt = conn.prepareStatement(
+                     "INSERT INTO games (whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?)",
+                     Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, g.whiteUsername());
+            stmt.setString(2, g.blackUsername());
+            stmt.setString(3, g.gameName());
+            stmt.setString(4, gson.toJson(g.game()));
+            stmt.executeUpdate();
+            var rs = stmt.getGeneratedKeys();
+            if (rs.next()) return rs.getInt(1);
+            throw new DataAccessException("failed to get gameID");
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
     }
 
     @Override
     public Optional<GameData> getGame(int gameID) throws DataAccessException {
-        return Optional.empty();
+        try (var conn = DatabaseManager.getConnection();
+             var stmt = conn.prepareStatement("SELECT * FROM games WHERE gameID=?")) {
+            stmt.setInt(1, gameID);
+            var rs = stmt.executeQuery();
+            if (rs.next()) {
+                return Optional.of(new GameData(
+                        rs.getInt("gameID"),
+                        rs.getString("whiteUsername"),
+                        rs.getString("blackUsername"),
+                        rs.getString("gameName"),
+                        (chess.ChessGame) gson.fromJson(rs.getString("game"), Object.class)
+                ));
+            }
+            return Optional.empty();
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
     }
 
     @Override
     public List<GameData> listGames() throws DataAccessException {
-        return List.of();
+        var list = new ArrayList<GameData>();
+        try (var conn = DatabaseManager.getConnection();
+             var stmt = conn.prepareStatement("SELECT * FROM games")) {
+            var rs = stmt.executeQuery();
+            while (rs.next()) {
+                list.add(new GameData(
+                        rs.getInt("gameID"),
+                        rs.getString("whiteUsername"),
+                        rs.getString("blackUsername"),
+                        rs.getString("gameName"),
+                        (chess.ChessGame) gson.fromJson(rs.getString("game"), Object.class)
+                ));
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
+        return list;
     }
 
     @Override
     public void updateGame(GameData g) throws DataAccessException {
-
+        try (var conn = DatabaseManager.getConnection();
+             var stmt = conn.prepareStatement(
+                     "UPDATE games SET whiteUsername=?, blackUsername=?, gameName=?, game=? WHERE gameID=?")) {
+            stmt.setString(1, g.whiteUsername());
+            stmt.setString(2, g.blackUsername());
+            stmt.setString(3, g.gameName());
+            stmt.setString(4, gson.toJson(g.game()));
+            stmt.setInt(5, g.gameID());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
     }
 }

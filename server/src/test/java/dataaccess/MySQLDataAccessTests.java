@@ -50,4 +50,18 @@ public class MySQLDataAccessTests {
                 "Expected foreign key constraint violation");
     }
 
+    @Test
+    public void clear_success() throws Exception {
+        dao.createUser(new UserData("x", "y", "z"));
+        dao.clear();
+        assertTrue(dao.listGames().isEmpty());
+        assertTrue(dao.getUser("x").isEmpty());
+    }
+
+    @Test
+    public void createGame_success() throws Exception {
+        int id = dao.createGame(new GameData(0, null, null, "MyGame", null));
+        assertTrue(dao.getGame(id).isPresent());
+    }
+
 }
