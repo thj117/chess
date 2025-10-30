@@ -5,6 +5,7 @@ import model.AuthData;
 import model.GameData;
 import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
+import org.xml.sax.SAXException;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -68,16 +69,44 @@ public class MySQLDataAccess implements DataAccess{
     //auth
     @Override
     public void createAuth(AuthData a) throws DataAccessException {
-
+        String sql = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
+        try (var conn = DatabaseManager.getConnection();
+             var stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, a.authToken());
+            stmt.setString(2, a.username());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
     }
 
     @Override
     public Optional<AuthData> getAuth(String authToken) throws DataAccessException {
-        return Optional.empty();
+        String sql = "SELECT authToken, username FROM auth WHERE authToken = ?";
+        try (var conn = DatabaseManager.getConnection();
+             var statement = conn.prepareStatement(sql)) {
+            statement.setString(1, authToken);
+            var rs = statement.executeQuery();
+            if (rs.next()) {
+                return Optional.of(new AuthData(
+                        rs.getString("authToken"),
+                        rs.getString("username")));
+            }
+            return Optional.empty();
+        } catch (SQLException e) {
+            throw new DataAccessException("SQL error fetching auth", e);
+        }
     }
 
     @Override
     public void deleteAuth(String authToken) throws DataAccessException {
+        String sql = "DELETE FROM auth WHERE authToken = ?";
+        try (var conn = DatabaseManager.getConnection(); var statement = conn.prepareStatement(sql)){
+            statement.setString(1, authToken);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException("SQL error deleting auth", e);
+        }
 
     }
 
