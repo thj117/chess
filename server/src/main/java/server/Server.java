@@ -2,6 +2,7 @@ package server;
 
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
+import dataaccess.DatabaseManager;
 import dataaccess.InMemoryDataAccess;
 import dataaccess.DataAccessException;
 import io.javalin.json.JavalinGson;
@@ -17,10 +18,18 @@ public class Server {
     private final GameService gameService = new GameService(dao);
 
     public Server() {
+        try {
+            DatabaseManager.createDatabase();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize database", e);
+        }
+
         javalin = Javalin.create(config -> {
             config.staticFiles.add("web");
             config.jsonMapper(new JavalinGson());
         });
+
+        //clear
         javalin.delete("/db", ctx -> { // clear DB
             try {
                 gameService.clear();

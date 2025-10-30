@@ -6,7 +6,11 @@ import server.Server;
 
 public class Main {
     public static void main(String[] args) throws DataAccessException {
-        DatabaseManager.createDatabase();
+        try {
+            DatabaseManager.createDatabase();
+        } catch (DataAccessException e) {
+            throw new RuntimeException("Failed to initialize database", e);
+        }
         Server server = new Server();
         server.run(8080);
 

@@ -15,12 +15,18 @@ import java.util.Optional;
 public class MySQLDataAccess implements DataAccess{
     private final Gson gson = new Gson();
 
+    public MySQLDataAccess() throws DataAccessException {
+        DatabaseManager.createDatabase();
+    }
+
     @Override
     public void clear() throws DataAccessException {
         try (var conn = DatabaseManager.getConnection(); var statement = conn.createStatement()){
+            statement.executeUpdate("SET FOREIGN_KEY_CHECKS = 0");
             statement.executeUpdate("TRUNCATE TABLE auth");
             statement.executeUpdate("TRUNCATE TABLE users");
             statement.executeUpdate("TRUNCATE TABLE games");
+            statement.executeUpdate("SET FOREIGN_KEY_CHECKS = 1");
         } catch (SQLException e) {
             throw new DataAccessException(e.getMessage());
         }
@@ -34,6 +40,7 @@ public class MySQLDataAccess implements DataAccess{
             statement.setString(1, u.username());
             statement.setString(2, BCrypt.hashpw(u.password(), BCrypt.gensalt()));
             statement.setString(3, u.email());
+            statement.executeUpdate();
         } catch (SQLException e) {
             throw new DataAccessException("already taken");
         }
@@ -49,8 +56,7 @@ public class MySQLDataAccess implements DataAccess{
                 return Optional.of(new UserData(
                         rs.getString("username"),
                         rs.getString("password"),
-                        rs.getString("email")
-                ));
+                        rs.getString("email")));
             }
 
             return Optional.empty();
