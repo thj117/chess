@@ -4,6 +4,9 @@ import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
+
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,7 +21,7 @@ public class MySQLDataAccess implements DataAccess{
             statement.executeUpdate("TRUNCATE TABLE auth");
             statement.executeUpdate("TRUNCATE TABLE users");
             statement.executeUpdate("TRUNCATE TABLE games");
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw new DataAccessException(e.getMessage());
         }
     }
@@ -26,12 +29,34 @@ public class MySQLDataAccess implements DataAccess{
     //user
     @Override
     public void createUser(UserData u) throws DataAccessException {
-
+        try (var conn = DatabaseManager.getConnection();
+             var statement = conn.prepareStatement("INSERT INTO users (username, password, email) VALUES (?,?,?)")){
+            statement.setString(1, u.username());
+            statement.setString(2, BCrypt.hashpw(u.password(), BCrypt.gensalt()));
+            statement.setString(3, u.email());
+        } catch (SQLException e) {
+            throw new DataAccessException("already taken");
+        }
     }
 
     @Override
     public Optional<UserData> getUser(String username) throws DataAccessException {
-        return Optional.empty();
+        try (var conn = DatabaseManager.getConnection();
+             var statement = conn.prepareStatement("SELECT * FROM users WHERE username=?")){
+            statement.setString(1, username);
+            var rs = statement.executeQuery();
+            if (rs.next()) {
+                return Optional.of(new UserData(
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        rs.getString("email")
+                ));
+            }
+
+            return Optional.empty();
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
     }
 
     //auth
