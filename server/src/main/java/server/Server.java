@@ -1,10 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.DataAccess;
-import dataaccess.DatabaseManager;
-import dataaccess.InMemoryDataAccess;
-import dataaccess.DataAccessException;
+import dataaccess.*;
 import io.javalin.json.JavalinGson;
 import service.*;
 import io.javalin.Javalin;
@@ -13,7 +10,7 @@ import java.util.Map;
 public class Server {
     private final Javalin javalin;
     private final Gson gson = new Gson();
-    private final DataAccess dao = new InMemoryDataAccess();
+    private final DataAccess dao = new MySQLDataAccess();
     private final UserService userService = new UserService(dao);
     private final GameService gameService = new GameService(dao);
 
@@ -44,14 +41,10 @@ public class Server {
                 RegisterRequest req = gson.fromJson(ctx.body(), RegisterRequest.class);
                 RegisterResult res = userService.register(req);
                 ctx.status(200).json(res);
-            } catch (IllegalArgumentException e) {
+            } catch (BadRequestException e) {
                 ctx.status(400).json(Map.of("message", "Error: bad request"));
-            } catch (DataAccessException e) {
-                if ("already taken".equals(e.getMessage())) {
+            } catch (AlreadyTakenException e) {
                     ctx.status(403).json(Map.of("message", "Error: already taken"));
-                } else {
-                    ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
-                }
             } catch (Exception e) {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
@@ -62,10 +55,10 @@ public class Server {
                 LoginRequest req = gson.fromJson(ctx.body(), LoginRequest.class);
                 LoginResult result = userService.login(req);
                 ctx.status(200).json(result);
-            } catch (IllegalArgumentException e) {
+            } catch (BadRequestException e) {
                 ctx.status(400).json((Map.of("message", "Error: bad request")));
-            } catch (DataAccessException e) {
-                ctx.status(401).json(Map.of("message", "Error: unauthorized"));
+            } catch (UnauthorizedException e) {
+                ctx.status(401).json(Map.of("message", "Error: " + e.getMessage()));
             } catch (Exception e) {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
@@ -76,7 +69,7 @@ public class Server {
                 String token = ctx.header("authorization");
                 userService.logout(token);
                 ctx.status(200).result("{}");
-            } catch (DataAccessException e) {
+            } catch (UnauthorizedException e) {
                 ctx.status(401).json(Map.of("message", "Error: unauthorized"));
             } catch (Exception e) {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
@@ -89,9 +82,10 @@ public class Server {
                 CreateGameRequest req = gson.fromJson(ctx.body(), CreateGameRequest.class);
                 CreateGameResult res = gameService.createGame(token, req);
                 ctx.status(200).json(Map.of("gameID", res.gameID()));
-            } catch (DataAccessException e) {
-                if ("bad request".equals(e.getMessage())) {ctx.status(400).json(Map.of("message", "Error: bad request"));}
-                else {ctx.status(401).json(Map.of("message", "Error: unauthorized"));}
+            } catch (BadRequestException e) {
+                ctx.status(400).json(Map.of("message", "Error: bad request"));
+            } catch (UnauthorizedException e){
+                ctx.status(401).json(Map.of("message", "Error: unauthorized"));
             } catch (Exception e) {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
@@ -103,11 +97,12 @@ public class Server {
                 JoinGameRequest req = gson.fromJson(ctx.body(), JoinGameRequest.class);
                 gameService.joinGame(token, req);
                 ctx.status(200).result("{}");
-            } catch (DataAccessException e) {
-                String msg = e.getMessage();
-                if ("bad request".equals(msg)) {ctx.status(400).json(Map.of("message", "Error: bad request"));}
-                else if ("already taken".equals(msg)) {ctx.status(403).json(Map.of("message", "Error: already taken"));}
-                else {ctx.status(401).json(Map.of("message", "Error: unauthorized"));}
+            } catch (BadRequestException e) {
+                ctx.status(400).json(Map.of("message", "Error: bad request"));
+            } catch (UnauthorizedException e) {
+                ctx.status(401).json(Map.of("message", "Error: unauthorized"));
+            } catch (AlreadyTakenException e) {
+                    ctx.status(403).json(Map.of("message", "Error: already taken"));
             } catch (Exception e) {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
@@ -118,7 +113,7 @@ public class Server {
                 String token = ctx.header("authorization");
                 ListGamesResult res = gameService.listGames(token);
                 ctx.status(200).json(Map.of("games", res.games()));
-            } catch (DataAccessException e) {
+            } catch (UnauthorizedException e) {
                 ctx.status(401).json(Map.of("message", "Error: unauthorized"));
             } catch (Exception e) {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));

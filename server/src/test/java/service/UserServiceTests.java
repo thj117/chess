@@ -32,7 +32,7 @@ public class UserServiceTests {
         userService.register(req);
 
         // second register should throw DataAccessException with message "already taken"
-        DataAccessException ex = assertThrows(DataAccessException.class, () -> userService.register(req));
+        AlreadyTakenException ex = assertThrows(AlreadyTakenException.class, () -> userService.register(req));
         assertEquals("already taken", ex.getMessage());
     }
 
@@ -53,8 +53,8 @@ public class UserServiceTests {
         userService.register(req);
 
         var loginReq = new LoginRequest("d", "wrong");
-        DataAccessException ex = assertThrows(DataAccessException.class, () -> userService.login(loginReq));
-        assertEquals("unauthorized", ex.getMessage());
+        UnauthorizedException ex = assertThrows(UnauthorizedException.class, () -> userService.login(loginReq));
+        assertEquals("unauthorized 3", ex.getMessage());
     }
 
     @Test
@@ -68,7 +68,7 @@ public class UserServiceTests {
 
     @Test
     public void logoutInvalidTokenFail() {
-        DataAccessException ex = assertThrows(DataAccessException.class, () -> userService.logout("nope"));
+        UnauthorizedException ex = assertThrows(UnauthorizedException.class, () -> userService.logout("nope"));
         assertEquals("unauthorized", ex.getMessage());
     }
 

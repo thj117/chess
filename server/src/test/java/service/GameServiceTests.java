@@ -30,7 +30,7 @@ public class GameServiceTests {
 
     @Test
     public void createGameUnauthorizedFail() {
-        DataAccessException ex = assertThrows(DataAccessException.class,
+        UnauthorizedException ex = assertThrows(UnauthorizedException.class,
                 () -> gameService.createGame("badtoken", new CreateGameRequest("G")));
         assertEquals("unauthorized", ex.getMessage());
     }
@@ -45,7 +45,7 @@ public class GameServiceTests {
         // a joins white
         gameService.joinGame(regA.authToken(), new JoinGameRequest("WHITE", id));
         // b tries to join white -> already taken
-        DataAccessException ex = assertThrows(DataAccessException.class,
+        AlreadyTakenException ex = assertThrows(AlreadyTakenException.class,
                 () -> gameService.joinGame(regB.authToken(), new JoinGameRequest("WHITE", id)));
         assertEquals("already taken", ex.getMessage());
     }
@@ -63,7 +63,7 @@ public class GameServiceTests {
 
     @Test
     public void listGamesUnauthorizedFails() {
-        DataAccessException ex = assertThrows(DataAccessException.class, () ->gameService.listGames("invaild token"));
+        UnauthorizedException ex = assertThrows(UnauthorizedException.class, () ->gameService.listGames("invaild token"));
         assertEquals("unauthorized", ex.getMessage());
     }
 
@@ -74,7 +74,7 @@ public class GameServiceTests {
         var createRes = gameService.createGame(reg1.authToken(), new CreateGameRequest("My Game"));
 
         gameService.joinGame(reg1.authToken(), new JoinGameRequest("WHITE", createRes.gameID()));
-        DataAccessException ex = assertThrows(DataAccessException.class, () ->gameService.joinGame(reg2.authToken(),
+        AlreadyTakenException ex = assertThrows(AlreadyTakenException.class, () ->gameService.joinGame(reg2.authToken(),
                 new JoinGameRequest("WHITE", createRes.gameID())));
         assertEquals("already taken", ex.getMessage()) ;
     }

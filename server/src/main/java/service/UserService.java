@@ -4,8 +4,8 @@ import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.UserData;
 import model.AuthData;
-
 import java.util.UUID;
+import org.mindrot.jbcrypt.BCrypt;
 
 
 public class UserService {
@@ -19,21 +19,15 @@ public class UserService {
         dao.clear();
     }
 
-    public RegisterResult register(RegisterRequest req) throws DataAccessException, IllegalArgumentException{
+    public RegisterResult register(RegisterRequest req) throws DataAccessException, BadRequestException, AlreadyTakenException{
         if (req == null || req.username() == null || req.password() == null || req.email() == null){
-            throw new IllegalArgumentException("bad request");
+            throw new BadRequestException("bad request");
         }
-        UserData u = new UserData(req.username(), req.password(), req.email());
-
-        try {
-           dao.createUser(u);
-        } catch (DataAccessException except) {
-            // if duplicate user exists, translate
-            if (dao.getUser(u.username()).isPresent()) {
-                throw new DataAccessException("already taken");
-            }
-            throw except;
+        UserData u = new UserData(req.username(), BCrypt.hashpw(req.password(), BCrypt.gensalt()), req.email());
+        if (dao.getUser(u.username()).isPresent()) {
+            throw new AlreadyTakenException("already taken");
         }
+        dao.createUser(u);
 
         String token = generateToken();
         AuthData a = new AuthData(token, u.username());
@@ -41,14 +35,18 @@ public class UserService {
         return new RegisterResult(u.username(), token);
     }
 
-    public LoginResult login(LoginRequest log) throws DataAccessException, IllegalArgumentException{
+    public LoginResult login(LoginRequest log) throws DataAccessException, UnauthorizedException, BadRequestException{
         if (log == null || log.password() == null|| log.username() == null){
-            throw new IllegalArgumentException("bad request");
+            throw new BadRequestException("bad request");
         }
         var maybe = dao.getUser(log.username());
-        if (maybe.isEmpty()){ throw new DataAccessException("unauthorized");}
+        if (maybe.isEmpty()){ throw new UnauthorizedException("unauthorized 1");}
         UserData u = maybe.get();
-        if(!u.password().equals(log.password())){ throw new DataAccessException("unauthorized");}
+        if(!u.username().equals(log.username()))
+        { throw new UnauthorizedException("unauthorized 2");}
+        if(!BCrypt.checkpw(log.password(), u.password()))
+        { throw new UnauthorizedException("unauthorized 3");
+        }
 
         String token = generateToken();
         AuthData a = new AuthData(token, u.username());
@@ -57,9 +55,9 @@ public class UserService {
 
     }
 
-    public void logout(String authToken) throws DataAccessException {
+    public void logout(String authToken) throws DataAccessException, UnauthorizedException {
         if (authToken == null || dao.getAuth(authToken).isEmpty()){
-            throw new DataAccessException("unauthorized");
+            throw new UnauthorizedException("unauthorized");
         }
         dao.deleteAuth(authToken);
     }
