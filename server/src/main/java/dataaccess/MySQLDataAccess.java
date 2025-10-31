@@ -123,7 +123,7 @@ public class MySQLDataAccess implements DataAccess{
             stmt.setString(4, gson.toJson(g.game()));
             stmt.executeUpdate();
             var rs = stmt.getGeneratedKeys();
-            if (rs.next()) return rs.getInt(1);
+            if (rs.next()) { return rs.getInt(1);}
             throw new DataAccessException("failed to get gameID");
         } catch (SQLException e) {
             throw new DataAccessException("Database access error: " + e.getMessage(), e);

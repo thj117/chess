@@ -29,7 +29,7 @@ public class GameService {
         return maybe.get().username();
     }
 
-    public CreateGameResult createGame(String authToken, CreateGameRequest req) throws DataAccessException, BadRequestException, UnauthorizedException {
+    public CreateGameResult createGame(String authToken, CreateGameRequest req) throws Exception {
         String username = verifyAuth(authToken);
         if (req == null || req.gameName() == null) {throw new BadRequestException("bad request");}
         // new game: creator is not automatically assigned to white/black
@@ -38,7 +38,7 @@ public class GameService {
         return new CreateGameResult(id);
     }
 
-    public void joinGame(String authToken, JoinGameRequest req) throws DataAccessException, BadRequestException, AlreadyTakenException, UnauthorizedException {
+    public void joinGame(String authToken, JoinGameRequest req) throws Exception {
         String username = verifyAuth(authToken);
         if (req == null || req.playerColor() == null) {throw new BadRequestException("bad request");}
         int id = req.gameID();

@@ -82,12 +82,9 @@ public class Server {
                 CreateGameRequest req = gson.fromJson(ctx.body(), CreateGameRequest.class);
                 CreateGameResult res = gameService.createGame(token, req);
                 ctx.status(200).json(Map.of("gameID", res.gameID()));
-            } catch (BadRequestException e) {
-                ctx.status(400).json(Map.of("message", "Error: bad request"));
-            } catch (UnauthorizedException e){
-                ctx.status(401).json(Map.of("message", "Error: unauthorized"));
-            } catch (Exception e) {
-                ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
+            } catch (BadRequestException e) {ctx.status(400).json(Map.of("message", "Error: bad request"));
+            } catch (UnauthorizedException e){ctx.status(401).json(Map.of("message", "Error: unauthorized"));
+            } catch (Exception e) {ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
         });
         // Join Game
@@ -97,14 +94,10 @@ public class Server {
                 JoinGameRequest req = gson.fromJson(ctx.body(), JoinGameRequest.class);
                 gameService.joinGame(token, req);
                 ctx.status(200).result("{}");
-            } catch (BadRequestException e) {
-                ctx.status(400).json(Map.of("message", "Error: bad request"));
-            } catch (UnauthorizedException e) {
-                ctx.status(401).json(Map.of("message", "Error: unauthorized"));
-            } catch (AlreadyTakenException e) {
-                    ctx.status(403).json(Map.of("message", "Error: already taken"));
-            } catch (Exception e) {
-                ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
+            } catch (BadRequestException e) {ctx.status(400).json(Map.of("message", "Error: bad request"));
+            } catch (UnauthorizedException e) {ctx.status(401).json(Map.of("message", "Error: unauthorized"));
+            } catch (AlreadyTakenException e) { ctx.status(403).json(Map.of("message", "Error: already taken"));
+            } catch (Exception e) {ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
         });
         // List Games
@@ -120,12 +113,10 @@ public class Server {
             }
         });
     }
-
     public int run(int desiredPort) {
         javalin.start(desiredPort);
         return javalin.port();
     }
-
     public void stop() {
         javalin.stop();
     }

@@ -19,7 +19,7 @@ public class UserService {
         dao.clear();
     }
 
-    public RegisterResult register(RegisterRequest req) throws DataAccessException, BadRequestException, AlreadyTakenException{
+    public RegisterResult register(RegisterRequest req) throws Exception{
         if (req == null || req.username() == null || req.password() == null || req.email() == null){
             throw new BadRequestException("bad request");
         }
