@@ -16,9 +16,7 @@ public class InMemoryDataAccess implements DataAccess {
     @Override
     public void createUser(UserData u) throws DataAccessException {
         Objects.requireNonNull(u);
-        if (users.putIfAbsent(u.username(), u) != null){
-            throw new DataAccessException("user already exists");
-        }
+        users.put(u.username(), u);
     }
 
     @Override

@@ -1,10 +1,10 @@
 package dataaccess;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
-import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -38,7 +38,7 @@ public class MySQLDataAccess implements DataAccess{
         try (var conn = DatabaseManager.getConnection();
              var statement = conn.prepareStatement("INSERT INTO users (username, password, email) VALUES (?,?,?)")){
             statement.setString(1, u.username());
-            statement.setString(2, BCrypt.hashpw(u.password(), BCrypt.gensalt()));
+            statement.setString(2, u.password());
             statement.setString(3, u.email());
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -61,7 +61,7 @@ public class MySQLDataAccess implements DataAccess{
 
             return Optional.empty();
         } catch (SQLException e) {
-            throw new DataAccessException(e.getMessage());
+            throw new DataAccessException("Database access error: " + e.getMessage(), e);
         }
     }
 
@@ -75,7 +75,7 @@ public class MySQLDataAccess implements DataAccess{
             stmt.setString(2, a.username());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new DataAccessException(e.getMessage());
+            throw new DataAccessException("Database access error: " + e.getMessage(), e);
         }
     }
 
@@ -126,7 +126,7 @@ public class MySQLDataAccess implements DataAccess{
             if (rs.next()) return rs.getInt(1);
             throw new DataAccessException("failed to get gameID");
         } catch (SQLException e) {
-            throw new DataAccessException(e.getMessage());
+            throw new DataAccessException("Database access error: " + e.getMessage(), e);
         }
     }
 
@@ -137,17 +137,22 @@ public class MySQLDataAccess implements DataAccess{
             stmt.setInt(1, gameID);
             var rs = stmt.executeQuery();
             if (rs.next()) {
+                ChessGame chessGame = null;
+                String gameJson = rs.getString("game");
+                if (gameJson != null && !gameJson.isEmpty()) {
+                    chessGame = new Gson().fromJson(gameJson, ChessGame.class);
+                }
                 return Optional.of(new GameData(
                         rs.getInt("gameID"),
                         rs.getString("whiteUsername"),
                         rs.getString("blackUsername"),
                         rs.getString("gameName"),
-                        (chess.ChessGame) gson.fromJson(rs.getString("game"), Object.class)
+                        chessGame
                 ));
             }
             return Optional.empty();
         } catch (SQLException e) {
-            throw new DataAccessException(e.getMessage());
+            throw new DataAccessException("Database access error: " + e.getMessage(), e);
         }
     }
 
@@ -158,16 +163,22 @@ public class MySQLDataAccess implements DataAccess{
              var stmt = conn.prepareStatement("SELECT * FROM games")) {
             var rs = stmt.executeQuery();
             while (rs.next()) {
+                ChessGame chessGame = null;
+                String gameJson = rs.getString("game");
+                if (gameJson != null && !gameJson.isEmpty()) {
+                    chessGame = new Gson().fromJson(gameJson, ChessGame.class);
+                }
+
                 list.add(new GameData(
                         rs.getInt("gameID"),
                         rs.getString("whiteUsername"),
                         rs.getString("blackUsername"),
                         rs.getString("gameName"),
-                        (chess.ChessGame) gson.fromJson(rs.getString("game"), Object.class)
+                        chessGame
                 ));
             }
         } catch (SQLException e) {
-            throw new DataAccessException(e.getMessage());
+            throw new DataAccessException("Database access error: " + e.getMessage(), e);
         }
         return list;
     }
@@ -184,7 +195,7 @@ public class MySQLDataAccess implements DataAccess{
             stmt.setInt(5, g.gameID());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new DataAccessException(e.getMessage());
+            throw new DataAccessException("Database access error: " + e.getMessage(), e);
         }
     }
 }
