@@ -64,4 +64,32 @@ public class MySQLDataAccessTests {
         assertTrue(dao.getGame(id).isPresent());
     }
 
+    @Test
+    void getGameNotFoundReturnsEmpty() throws Exception {
+        Optional<GameData> game = dao.getGame(9999); // doesn’t exist
+        assertTrue(game.isEmpty());
+    }
+
+    @Test
+    void updateGame_success() throws Exception {
+        dao.createUser(new UserData("ellen", "pw", "e@e.com"));
+        GameData game = new GameData(0, null, null, "Game1", null);
+        int id = dao.createGame(game);
+
+        GameData updated = new GameData(id, "ellen", null, "Updated Game", null);
+        dao.updateGame(updated);
+
+        Optional<GameData> found = dao.getGame(id);
+        assertTrue(found.isPresent());
+        assertEquals("ellen", found.get().whiteUsername());
+        assertEquals("Updated Game", found.get().gameName());
+    }
+
+    @Test
+    void updateGameNotFoundFails() {
+        GameData bad = new GameData(9999, "x", null, "Nope", null);
+        DataAccessException ex = assertThrows(DataAccessException.class, () -> dao.updateGame(bad));
+        assertTrue(ex.getMessage().toLowerCase().contains("no game") || ex.getMessage().toLowerCase().contains("failed"));
+    }
+
 }

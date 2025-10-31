@@ -193,7 +193,12 @@ public class MySQLDataAccess implements DataAccess{
             stmt.setString(3, g.gameName());
             stmt.setString(4, gson.toJson(g.game()));
             stmt.setInt(5, g.gameID());
-            stmt.executeUpdate();
+            int rows = stmt.executeUpdate();
+
+            if (rows == 0) {
+                throw new DataAccessException("No game found with ID " + g.gameID());
+            }
+
         } catch (SQLException e) {
             throw new DataAccessException("Database access error: " + e.getMessage(), e);
         }
