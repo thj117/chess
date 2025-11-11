@@ -58,7 +58,16 @@ public class ServerFacade {
     }
 
     public void logout(String authToken) throws Exception{
+        var httpReq = HttpRequest.newBuilder()
+                .uri(URI.create(serverurl + "/session"))
+                .header("Content-Type", authToken)
+                .DELETE()
+                .build();
+        var res = client.send(httpReq, HttpResponse.BodyHandlers.ofString());
 
+        if (res.statusCode() != 200){
+            throw new Exception(parseError(res.body()));
+        }
     }
 
 
