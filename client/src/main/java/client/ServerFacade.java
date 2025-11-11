@@ -2,6 +2,7 @@ package client;
 
 import com.google.gson.Gson;
 import model.AuthData;
+import service.LoginRequest;
 import service.RegisterRequest;
 
 
@@ -40,7 +41,20 @@ public class ServerFacade {
     }
 
     public  AuthData login(String username, String password) throws Exception{
-        return null;
+        LoginRequest req = new LoginRequest(username, password);
+        var body = gson.toJson(req);
+        var httpReq = HttpRequest.newBuilder()
+                .uri(URI.create(serverurl + "/session"))
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .header("Content-Type", "application/json")
+                .build();
+        var res = client.send(httpReq, HttpResponse.BodyHandlers.ofString());
+
+        if (res.statusCode() == 200){
+            return gson.fromJson(res.body(), AuthData.class);
+        } else {
+            throw new Exception(parseError(res.body()));
+        }
     }
 
     public void logout(String authToken) throws Exception{

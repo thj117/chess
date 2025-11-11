@@ -3,6 +3,7 @@ package client;
 import org.junit.jupiter.api.*;
 import server.Server;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
@@ -32,9 +33,18 @@ public class ServerFacadeTests {
     }
 
     @Test
-    void register_success() throws Exception {
+    void registerSuccess() throws Exception {
         var auth = facade.register("p1", "pw", "p1@email.com");
         assertNotNull(auth.authToken());
+    }
+
+    @Test
+    void loginSuccess() throws Exception {
+        var reg = facade.register("loginUser", "pw", "loginUser@email.com");
+        var auth = facade.login("loginUser", "pw");
+
+        assertNotNull(auth.authToken(), "Auth token should not be null after successful login");
+        assertEquals("loginUser", auth.username(), "Username should match registered username");
     }
 
 }
