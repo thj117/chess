@@ -2,9 +2,15 @@ package client;
 
 import com.google.gson.Gson;
 import model.AuthData;
+import service.RegisterRequest;
 
 
+import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.io.IOException;
+import java.util.Map;
 
 
 public class ServerFacade {
@@ -17,7 +23,20 @@ public class ServerFacade {
     }
 
     public AuthData register(String username, String password, String email) throws Exception{
-        return null;
+        RegisterRequest req = new RegisterRequest(username, password, email);
+        var body = gson.toJson(req);
+        var httpReq  = HttpRequest.newBuilder()
+                .uri(URI.create(serverurl + "/user"))
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .header("Content-Type", "application/json")
+                .build();
+        var res = client.send(httpReq, HttpResponse.BodyHandlers.ofString());
+
+        if (res.statusCode() == 200){
+            return gson.fromJson(res.body(), AuthData.class);
+        } else {
+            throw new Exception(parseError(res.body()));
+        }
     }
 
     public  AuthData login(String username, String password) throws Exception{
@@ -28,6 +47,15 @@ public class ServerFacade {
 
     }
 
+
+    private String parseError(String bodyResponse){
+        try {
+            var error = gson.fromJson(bodyResponse, Map.class);
+            return (String) error.getOrDefault("message", "unknown error occurred");
+        } catch (Exception e){
+            return "Sever error:" + bodyResponse;
+        }
+    }
 
 }
 
