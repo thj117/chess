@@ -1,18 +1,26 @@
 package client;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import model.AuthData;
+import model.GameData;
 import service.CreateGameRequest;
+import service.ListGamesResult;
 import service.LoginRequest;
 import service.RegisterRequest;
 
 
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
+import com.google.gson.Gson;
+import model.*;
+
 
 
 public class ServerFacade {
@@ -86,6 +94,23 @@ public class ServerFacade {
             Map<?, ?> map = gson.fromJson(res.body(), Map.class);
             Double gameID = (Double) map.get("gameID");
             return gameID.intValue();
+        } else {
+            throw new Exception(parseError(res.body()));
+        }
+    }
+
+    public List<GameData> listGames(String authtoken)throws Exception{
+        var httpReq = HttpRequest.newBuilder()
+                .uri(URI.create(serverurl + "/game"))
+                .header("authorization", authtoken)
+                .GET()
+                .build();
+
+        var res = client.send(httpReq, HttpResponse.BodyHandlers.ofString());
+
+        if (res.statusCode() == 200) {
+            Type resultType = new TypeToken<ListGamesResult>() {}.getType();
+            return gson.fromJson(res.body(), resultType);
         } else {
             throw new Exception(parseError(res.body()));
         }
