@@ -130,6 +130,17 @@ public class ServerFacade {
         }
     }
 
+    public void clear() throws Exception {
+        var httpReq = HttpRequest.newBuilder()
+                .uri(URI.create(serverurl + "/db"))
+                .DELETE()
+                .build();
+        var res = client.send(httpReq, HttpResponse.BodyHandlers.ofString());
+        if (res.statusCode() != 200) {
+            throw new Exception(parseError(res.body()));
+        }
+    }
+
 
     private String parseError(String bodyResponse){
         try {
