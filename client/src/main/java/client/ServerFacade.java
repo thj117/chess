@@ -4,10 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import model.AuthData;
 import model.GameData;
-import service.CreateGameRequest;
-import service.ListGamesResult;
-import service.LoginRequest;
-import service.RegisterRequest;
+import service.*;
 
 
 import java.lang.reflect.Type;
@@ -112,6 +109,23 @@ public class ServerFacade {
             Type resultType = new TypeToken<ListGamesResult>() {}.getType();
             return gson.fromJson(res.body(), resultType);
         } else {
+            throw new Exception(parseError(res.body()));
+        }
+    }
+
+    public void joinGame(String authToken, String color, int gameID)throws Exception{
+        JoinGameRequest req = new JoinGameRequest(color, gameID);
+        var body = gson.toJson(req);
+        var httpReq = HttpRequest.newBuilder()
+                .uri(URI.create(serverurl + "/game"))
+                .header("authorization", authToken)
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        var res = client.send(httpReq, HttpResponse.BodyHandlers.ofString());
+
+        if (res.statusCode() != 200) {
             throw new Exception(parseError(res.body()));
         }
     }
