@@ -2,6 +2,7 @@ package client;
 
 import com.google.gson.Gson;
 import model.AuthData;
+import service.CreateGameRequest;
 import service.LoginRequest;
 import service.RegisterRequest;
 
@@ -66,6 +67,26 @@ public class ServerFacade {
         var res = client.send(httpReq, HttpResponse.BodyHandlers.ofString());
 
         if (res.statusCode() != 200){
+            throw new Exception(parseError(res.body()));
+        }
+    }
+
+    public int createGame(String authToken, String gameName) throws Exception {
+        CreateGameRequest req = new CreateGameRequest(gameName);
+        var body = gson.toJson(req);
+        var httpReq = HttpRequest.newBuilder()
+                .uri(URI.create(serverurl + "/game"))
+                .header("authorization", authToken)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        var res = client.send(httpReq, HttpResponse.BodyHandlers.ofString());
+        if (res.statusCode() == 200) {
+            Map<?, ?> map = gson.fromJson(res.body(), Map.class);
+            Double gameID = (Double) map.get("gameID");
+            return gameID.intValue();
+        } else {
             throw new Exception(parseError(res.body()));
         }
     }
