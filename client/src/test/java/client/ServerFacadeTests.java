@@ -3,8 +3,7 @@ package client;
 import org.junit.jupiter.api.*;
 import server.Server;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class ServerFacadeTests {
@@ -29,7 +28,7 @@ public class ServerFacadeTests {
 
     @Test
     public void sampleTest() {
-        Assertions.assertTrue(true);
+        assertTrue(true);
     }
 
     @Test
@@ -39,6 +38,16 @@ public class ServerFacadeTests {
     }
 
     @Test
+    void registerFail() throws Exception {
+        facade.register("dupeUser", "pw", "e@e.com");
+        Exception ex = assertThrows(Exception.class, () -> {
+            facade.register("dupeUser", "pw", "e@e.com");
+        });
+        assertTrue(ex.getMessage().toLowerCase().contains("already taken"));
+    }
+
+
+    @Test
     void loginSuccess() throws Exception {
         var reg = facade.register("loginUser", "pw", "loginUser@email.com");
         var auth = facade.login("loginUser", "pw");
@@ -46,5 +55,31 @@ public class ServerFacadeTests {
         assertNotNull(auth.authToken(), "Auth token should not be null after successful login");
         assertEquals("loginUser", auth.username(), "Username should match registered username");
     }
+
+    @Test
+    void loginFail() throws Exception {
+        facade.register("badLogin", "pw", "email@email.com");
+        Exception ex = assertThrows(Exception.class, () -> {
+            facade.login("badLogin", "wrongpw");
+        });
+        assertTrue(ex.getMessage().toLowerCase().contains("unauthorized"));
+    }
+
+    @Test
+    void logoutSuccess() throws Exception {
+        var auth = facade.register("logoutUser", "pw", "logout@email.com");
+        System.out.println("Token received: " + auth.authToken());
+        assertDoesNotThrow(() -> facade.logout(auth.authToken()));
+    }
+
+    @Test
+    void logoutFail() {
+        Exception ex = assertThrows(Exception.class, () -> {
+            facade.logout("invalid-token");
+        });
+        assertTrue(ex.getMessage().toLowerCase().contains("unauthorized"));
+    }
+
+
 
 }
