@@ -6,6 +6,7 @@ public class chessClient {
     private final ServerFacade server;
     private boolean running = true;
     private boolean loggedin = false;
+    private String authToken;
 
     public chessClient(int port){
         server = new ServerFacade(port);
@@ -34,16 +35,53 @@ public class chessClient {
                 System.out.println("Goodbye!");
                 running = false;
             }
-            case "register" -> System.out.println("register");
-            case "login" -> System.out.println("login!");
-                default -> System.out.println("Unknown command, please type 'help' for a list of valid commands");
+            case "register" -> {
+                System.out.println("username: ");
+                String u = scanner.nextLine();
+                System.out.println("password: ");
+                String p = scanner.nextLine();
+                System.out.println("email: ");
+                String e = scanner.nextLine();
+                try {
+                    var auth = server.register(u,p,e);
+                    authToken = auth.authToken();
+                    loggedin = true;
+                    System.out.println("Registered and logged in as" + auth.username());
+                } catch (Exception ex) {
+                    System.out.println("Registration failed" + ex.getMessage());
+                }
+            }
+            case "login" -> {
+                System.out.print("Username: ");
+                String u = scanner.nextLine();
+                System.out.print("Password: ");
+                String p = scanner.nextLine();
+                try {
+                    var auth = server.login(u, p);
+                    authToken = auth.authToken();
+                    loggedin = true;
+                    System.out.println("Logged in as " + auth.username());
+                } catch (Exception ex) {
+                    System.out.println("Login failed: " + ex.getMessage());
+                }
+            }
+            default -> System.out.println("Unknown command. Type 'help' for available commands.");
         }
     }
 
     private void handlePostLogin(String input, Scanner scanner){
         switch (input){
             case "help" -> printPostHelp();
-            case "logout" -> System.out.println("logout");
+            case "logout" -> {
+                try {
+                    server.logout(authToken);
+                    loggedin = false;
+                    authToken = null;
+                    System.out.println("Logged out.");
+                } catch (Exception e) {
+                    System.out.println("Logout failed: " + e.getMessage());
+                }
+            }
             case "create" -> System.out.println("create game");
             case "list" -> System.out.println("list games");
             case "play" -> System.out.println("play game");
@@ -51,7 +89,7 @@ public class chessClient {
         }
     }
 
-    private void printPreHelp(){
+    private void printPostHelp(){
         System.out.println("""
                Available commands:
                help  -  Shows this help message
@@ -63,7 +101,7 @@ public class chessClient {
                """);
     }
 
-    private void printPostHelp(){
+    private void printPreHelp(){
         System.out.println("""
                Available commands:
                help  -  Shows this help message
