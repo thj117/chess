@@ -13,6 +13,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import com.google.gson.Gson;
@@ -63,15 +64,14 @@ public class ServerFacade {
         }
     }
 
-    public void logout(String authToken) throws Exception{
+    public void logout(String authToken) throws Exception {
         var httpReq = HttpRequest.newBuilder()
                 .uri(URI.create(serverurl + "/session"))
-                .header("Content-Type", authToken)
+                .header("authorization", authToken)
                 .DELETE()
                 .build();
         var res = client.send(httpReq, HttpResponse.BodyHandlers.ofString());
-
-        if (res.statusCode() != 200){
+        if (res.statusCode() != 200) {
             throw new Exception(parseError(res.body()));
         }
     }
@@ -96,18 +96,29 @@ public class ServerFacade {
         }
     }
 
-    public List<GameData> listGames(String authtoken)throws Exception{
+    public List<GameData> listGames(String authToken) throws Exception {
         var httpReq = HttpRequest.newBuilder()
                 .uri(URI.create(serverurl + "/game"))
-                .header("authorization", authtoken)
+                .header("authorization", authToken)
                 .GET()
                 .build();
-
         var res = client.send(httpReq, HttpResponse.BodyHandlers.ofString());
 
         if (res.statusCode() == 200) {
-            Type resultType = new TypeToken<ListGamesResult>() {}.getType();
-            return gson.fromJson(res.body(), resultType);
+            Map<String, Object> map = gson.fromJson(res.body(), Map.class);
+            List<Map<String, Object>> rawGames = (List<Map<String, Object>>) map.get("games");
+            List<GameData> games = new ArrayList<>();
+            for (Map<String, Object> g : rawGames) {
+                games.add(new GameData(
+                        ((Double) g.get("gameID")).intValue(),
+                        (String) g.get("whiteUsername"),
+                        (String) g.get("blackUsername"),
+                        (String) g.get("gameName"),
+                        null
+                ));
+            }
+            return games;
+
         } else {
             throw new Exception(parseError(res.body()));
         }

@@ -42,7 +42,10 @@ public class MySQLDataAccess implements DataAccess{
             statement.setString(3, u.email());
             statement.executeUpdate();
         } catch (SQLException e) {
-            throw new DataAccessException("already taken");
+            if (e.getErrorCode() == 403) {
+                throw new DataAccessException("already taken");
+            }
+            throw new DataAccessException("Database access error: " + e.getMessage(), e);
         }
     }
 

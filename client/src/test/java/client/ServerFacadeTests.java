@@ -20,6 +20,11 @@ public class ServerFacadeTests {
         facade = new ServerFacade(port);
     }
 
+    @BeforeEach
+    void clear() throws Exception {
+        facade.clear();
+    }
+
     @AfterAll
     static void stopServer() {
         server.stop();
@@ -78,6 +83,60 @@ public class ServerFacadeTests {
             facade.logout("invalid-token");
         });
         assertTrue(ex.getMessage().toLowerCase().contains("unauthorized"));
+    }
+
+    @Test
+    void createGameSuccess() throws Exception {
+        var auth = facade.register("creator", "pw", "c@c.com");
+        var game = facade.createGame(auth.authToken(), "Epic Match");
+        assertTrue(game > 0, "Game ID should be greater than 0");
+    }
+
+    @Test
+    void createGameFail() {
+        Exception ex = assertThrows(Exception.class, () -> {
+            facade.createGame("fake-token", "Invalid Match");
+        });
+        assertTrue(ex.getMessage().toLowerCase().contains("unauthorized"));
+    }
+
+    @Test
+    void listGamesSuccess() throws Exception {
+        var auth = facade.register("lister", "pw", "l@l.com");
+        facade.createGame(auth.authToken(), "My Game");
+        var games = facade.listGames(auth.authToken());
+        assertFalse(games.isEmpty(), "Games list should not be empty");
+    }
+
+    @Test
+    void listGamesFail() {
+        Exception ex = assertThrows(Exception.class, () -> {
+            facade.listGames("bad-token");
+        });
+        assertTrue(ex.getMessage().toLowerCase().contains("unauthorized"));
+    }
+
+    @Test
+    void joinGameSuccess() throws Exception {
+        var auth = facade.register("joiner", "pw", "j@j.com");
+        var createRes = facade.createGame(auth.authToken(), "Joinable Game");
+        assertDoesNotThrow(() -> facade.joinGame(auth.authToken(), "WHITE", createRes));
+    }
+
+    @Test
+    void joinGameFail() throws Exception {
+        var auth = facade.register("joinFail", "pw", "jf@jf.com");
+        Exception ex = assertThrows(Exception.class, () -> {
+            facade.joinGame(auth.authToken(), "WHITE", 9999); // bad ID
+        });
+        assertTrue(ex.getMessage().toLowerCase().contains("bad request"));
+    }
+
+    @Test
+    void clearSuccess() throws Exception {
+        var auth = facade.register("clearUser", "pw", "clear@clear.com");
+        assertNotNull(auth.authToken());
+        assertDoesNotThrow(() -> facade.clear());
     }
 
 
