@@ -1,8 +1,11 @@
 package client;
 
 
+import client.requests.CreateGameRequest;
+import client.requests.JoinGameRequest;
+import client.requests.LoginRequest;
+import client.requests.RegisterRequest;
 import com.google.gson.Gson;
-import service.*;
 
 
 import java.net.URI;
