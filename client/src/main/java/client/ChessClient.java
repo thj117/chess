@@ -6,14 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class chessClient {
+public class ChessClient {
     private final ServerFacade server;
     private boolean running = true;
     private boolean loggedin = false;
     private String authToken;
     private List<GameData> lastGameList = new ArrayList<>();
 
-    public chessClient(int port){
+    public ChessClient(int port){
         this.server = new ServerFacade(port);
     }
 
@@ -111,7 +111,6 @@ public class chessClient {
                             g.whiteUsername() == null ? "-" : g.whiteUsername(),
                             g.blackUsername() == null ? "-" : g.blackUsername());
                 }
-
             }
             case "play" -> {
                 if (lastGameList.isEmpty()){
@@ -127,7 +126,6 @@ public class chessClient {
                         System.out.println("Invalid game number");
                         break;
                     }
-
                     GameData g = lastGameList.get(idx - 1);
                     System.out.println("Choose your color: (white or black)");
                     String color = scanner.nextLine().trim().toUpperCase();
@@ -136,7 +134,6 @@ public class chessClient {
                         System.out.println("Invalid color");
                         break;
                     }
-
                     server.joinGame(authToken, color, g.gameID());
                     System.out.println("Joined game " + g.gameName() + "as the color " + color);
                     drawBoard(color.equals("WHITE"));
@@ -161,9 +158,7 @@ public class chessClient {
                         System.out.println("Invalid game number");
                         break;
                     }
-
                     GameData g = lastGameList.get(idx - 1);
-
                     server.joinGame(authToken,null, g.gameID());
                     System.out.println("Observing game: " + g.gameName());
                     drawBoard(true); // Observers see white perspective
@@ -173,7 +168,6 @@ public class chessClient {
                     System.out.println("Observe game failed: " + ex.getMessage());
                 }
             }
-
         }
     }
 
