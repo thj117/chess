@@ -1,22 +1,18 @@
 package client;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import model.AuthData;
 import model.GameData;
 import service.*;
 
 
-import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.gson.Gson;
 import model.*;
 
 
@@ -105,23 +101,17 @@ public class ServerFacade {
         var res = client.send(httpReq, HttpResponse.BodyHandlers.ofString());
 
         if (res.statusCode() == 200) {
-            Map<String, Object> map = gson.fromJson(res.body(), Map.class);
-            List<Map<String, Object>> rawGames = (List<Map<String, Object>>) map.get("games");
+            Map map = gson.fromJson(res.body(), Map.class);
+            List<?> rawGames = (List<?>) map.get("games");
             List<GameData> games = new ArrayList<>();
-            for (Map<String, Object> g : rawGames) {
-                games.add(new GameData(
-                        ((Double) g.get("gameID")).intValue(),
-                        (String) g.get("whiteUsername"),
-                        (String) g.get("blackUsername"),
-                        (String) g.get("gameName"),
-                        null
-                ));
+            for (Object obj : rawGames) {
+                String json = gson.toJson(obj);
+                games.add(gson.fromJson(json, GameData.class));
             }
             return games;
-
-        } else {
-            throw new Exception(parseError(res.body()));
         }
+
+        throw new Exception(parseError(res.body()));
     }
 
     public void joinGame(String authToken, String color, int gameID)throws Exception{
@@ -153,12 +143,13 @@ public class ServerFacade {
     }
 
 
-    private String parseError(String bodyResponse){
+    private String parseError(String bodyResponse) {
         try {
-            var error = gson.fromJson(bodyResponse, Map.class);
-            return (String) error.getOrDefault("message", "unknown error occurred");
-        } catch (Exception e){
-            return "Sever error:" + bodyResponse;
+            Map<?, ?> error = gson.fromJson(bodyResponse, Map.class);
+            Object msg = error.get("message");
+            return msg == null ? "Unknown error" : msg.toString();
+        } catch (Exception ex) {
+            return "Server error: " + bodyResponse;
         }
     }
 
