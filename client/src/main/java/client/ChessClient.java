@@ -147,7 +147,7 @@ public class ChessClient {
                     System.out.println("Play game failed: " + e.getMessage());
                 }
             }
-            case "observe game" -> {
+            case "observe" -> {
                 if (lastGameList.isEmpty()) {
                     System.out.println("You must run 'list' first to see the list of games ");
                     break;
@@ -162,7 +162,7 @@ public class ChessClient {
                         break;
                     }
                     GameData g = lastGameList.get(idx - 1);
-                    server.joinGame(authToken, null, g.gameID());
+                    server.joinGame(authToken, "observe", g.gameID());
                     System.out.println("Observing game: " + g.gameName());
                     drawBoard("WHITE"); // Observers see white perspective
                 } catch (NumberFormatException nfe) {
@@ -171,6 +171,7 @@ public class ChessClient {
                     System.out.println("Observe game failed: " + ex.getMessage());
                 }
             }
+            default -> System.out.println("Unknown command. Type 'help' for available commands.");
         }
     }
 
@@ -223,7 +224,7 @@ public class ChessClient {
                 ChessPiece piece = board.getPiece(pos);
 
                 boolean lightSquare = ((row + (col - 'a' + 1)) % 2 == 0);
-                String bg = lightSquare ? LIGHT : DARK;
+                String bg = lightSquare ? DARK : LIGHT;
 
                 if (piece != null) System.out.print(bg + pieceToChar(piece) + RESET);
                 else System.out.print(bg + "   " + RESET);

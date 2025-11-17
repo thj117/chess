@@ -75,4 +75,12 @@ public class GameService {
         }
         return new ListGamesResult(result);
     }
+
+    public void addObserver(String authToken, int gameID) throws Exception {
+        var user = dao.getAuth(authToken)
+                .orElseThrow(() -> new UnauthorizedException("No user"));
+        var game = dao.getGame(gameID)
+                .orElseThrow(() -> new BadRequestException("Game does not exist"));
+
+    }
 }

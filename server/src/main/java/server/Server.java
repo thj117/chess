@@ -92,8 +92,17 @@ public class Server {
             try {
                 String token = ctx.header("authorization");
                 JoinGameRequest req = gson.fromJson(ctx.body(), JoinGameRequest.class);
-                gameService.joinGame(token, req);
-                ctx.status(200).result("{}");
+
+                if (req.playerColor() == null){
+                    throw new BadRequestException("invalid color");
+                } if (req.playerColor().equals("observe")){
+                    gameService.addObserver(token, req.gameID());
+                    ctx.status(200).json(Map.of("message", "Observing game"));
+                }
+                else {
+                    gameService.joinGame(token, req);
+                    ctx.status(200).json(Map.of("message", "Joined game"));
+                }
             } catch (BadRequestException e) {ctx.status(400).json(Map.of("message", "Error: bad request"));
             } catch (UnauthorizedException e) {ctx.status(401).json(Map.of("message", "Error: unauthorized"));
             } catch (AlreadyTakenException e) { ctx.status(403).json(Map.of("message", "Error: already taken"));
