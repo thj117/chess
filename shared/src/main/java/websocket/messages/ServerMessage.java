@@ -33,11 +33,15 @@ public class ServerMessage {
     }
 
     public static ServerMessage notification(String message){
-        return null;
+        ServerMessage msg = new ServerMessage(ServerMessageType.NOTIFICATION);
+        msg.message = message;
+        return msg;
     }
 
     public static ServerMessage error(String message){
-        return null;
+        ServerMessage msg = new ServerMessage(ServerMessageType.ERROR);
+        msg.message = message;
+        return msg;
     }
 
     public ServerMessageType getServerMessageType() {
