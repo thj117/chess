@@ -5,7 +5,14 @@ import dataaccess.*;
 import io.javalin.json.JavalinGson;
 import service.*;
 import io.javalin.Javalin;
+
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+
+import io.javalin.websocket.WsContext;
+import websocket.commands.UserGameCommand;
+import websocket.messages.ServerMessage;
 
 public class Server {
     private final Javalin javalin;
@@ -13,6 +20,8 @@ public class Server {
     private final DataAccess dao = new MySQLDataAccess();
     private final UserService userService = new UserService(dao);
     private final GameService gameService = new GameService(dao);
+    private final Map<Integer, Set<WsContext>> gameSession = new HashMap<>();
+    private final Map<WsContext, Integer> toGame = new HashMap<>();
 
     public Server() {
         try {
@@ -120,6 +129,31 @@ public class Server {
             } catch (Exception e) {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
+        });
+
+        javalin.ws("/ws", ws -> {
+
+            ws.onConnect(ctx -> {
+                System.out.println("WS connected: " + ctx.sessionId());
+                    });
+
+            ws.onMessage(ctx-> {
+                var json = ctx.message();
+                UserGameCommand command = gson.fromJson(json, UserGameCommand.class);
+
+            });
+
+            ws.onClose(ctx->{
+                Integer gameId = toGame.remove(ctx);
+                if (gameId != null){
+                    var set = gameSession.get(gameId);
+                    if (set != null){
+                        set.remove(ctx);
+                    }
+                }
+            });
+
+
         });
     }
     public int run(int desiredPort) {
