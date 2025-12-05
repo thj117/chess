@@ -170,13 +170,28 @@ public class Server {
         }
     }
 
-    private void handleResign(WsContext ctx, UserGameCommand command) {
+    private void handleResign(WsContext ctx, UserGameCommand command) throws Exception {
+        String authToken = command.getAuthToken();
+        int gameId = command.getGameID();
+        var auth = dao.getAuth(authToken).orElseThrow(() -> new Exception("Invalid authToken"));
+        String username = auth.username();
+        var gameData = dao.getGame(gameId).orElseThrow(() -> new Exception("Game doesn't exist"));
     }
 
-    private void handleLeave(WsContext ctx, UserGameCommand command) {
+    private void handleLeave(WsContext ctx, UserGameCommand command) throws Exception {
+        String authToken = command.getAuthToken();
+        int gameId = command.getGameID();
+        var auth = dao.getAuth(authToken).orElseThrow(() -> new Exception("Invalid authToken"));
+        String username = auth.username();
+        var gameData = dao.getGame(gameId).orElseThrow(() -> new Exception("Game doesn't exist"));
     }
 
-    private void handleMakeMove(WsContext ctx, UserGameCommand command) {
+    private void handleMakeMove(WsContext ctx, UserGameCommand command) throws Exception {
+        String authToken = command.getAuthToken();
+        int gameId = command.getGameID();
+        var auth = dao.getAuth(authToken).orElseThrow(() -> new Exception("Invalid authToken"));
+        String username = auth.username();
+        var gameData = dao.getGame(gameId).orElseThrow(() -> new Exception("Game doesn't exist"));
     }
 
     private void handleConnect(WsContext ctx,UserGameCommand command) throws Exception {
