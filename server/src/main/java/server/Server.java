@@ -7,6 +7,7 @@ import service.*;
 import io.javalin.Javalin;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -178,7 +179,13 @@ public class Server {
     private void handleMakeMove(WsContext ctx, UserGameCommand command) {
     }
 
-    private void handleConnect(WsContext ctx,UserGameCommand command){}
+    private void handleConnect(WsContext ctx,UserGameCommand command){
+        int gameId = command.getGameID();
+        gameSession.computeIfAbsent(gameId, k -> new HashSet<>()).add(ctx);
+        toGame.put(ctx, gameId);
+        var loadMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
+        ctx.send(gson.toJson(loadMsg));
+    }
 
     public int run(int desiredPort) {
         javalin.start(desiredPort);
