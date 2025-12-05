@@ -186,6 +186,22 @@ public class Server {
         var auth = dao.getAuth(authToken).orElseThrow(() -> new Exception("Invalid authToken"));
         String username = auth.username();
         var gameData = dao.getGame(gameId).orElseThrow(() -> new Exception("Game doesn't exist"));
+
+        String w = gameData.whiteUsername();
+        String b = gameData.blackUsername();
+        if (username.equals(w)) w = null;
+        if (username.equals(b)) b = null;
+
+        GameData updated = new GameData(gameData.gameID(), w, b, gameData.gameName(), gameData.game());
+        dao.updateGame(updated);
+        broadcastToOthers(gameId, ctx, ServerMessage.notification(username + " left the game"));
+
+        Integer grid = toGame.remove(ctx);
+        if (grid != null) {
+            var set = gameSession.get(grid);
+            if (set != null) set.remove(ctx);
+        }
+        ctx.send(gson.toJson(ServerMessage.notification("You left the game")));
     }
 
     private void handleMakeMove(WsContext ctx, UserGameCommand command) throws Exception {
@@ -245,14 +261,6 @@ public class Server {
         }
     }
 
-    private void broadcastToAll(int gameId, ServerMessage message) {
-        var set = gameSession.get(gameId);
-        if (set == null) return;
-        String json = gson.toJson(message);
-        for (var c : set) {
-            c.send(json);
-        }
-    }
 
     private void handleConnect(WsContext ctx,UserGameCommand command) throws Exception {
         String authToken = command.getAuthToken();
@@ -287,6 +295,15 @@ public class Server {
             if (c != ctx){
                 c.send(json);
             }
+        }
+    }
+
+    private void broadcastToAll(int gameId, ServerMessage message) {
+        var set = gameSession.get(gameId);
+        if (set == null) return;
+        String json = gson.toJson(message);
+        for (var c : set) {
+            c.send(json);
         }
     }
 
