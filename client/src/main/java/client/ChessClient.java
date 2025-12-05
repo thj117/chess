@@ -3,6 +3,7 @@ package client;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
+import client.requests.GameplayClient;
 import model.*;
 
 import java.util.ArrayList;
@@ -15,6 +16,8 @@ public class ChessClient {
     private boolean loggedin = false;
     private String authToken;
     private List<GameData> lastGameList = new ArrayList<>();
+    private GameplayClient gameplayClient;
+    private ChessGame currentGame;
 
     public ChessClient(int port) {
         this.server = new ServerFacade(port);
@@ -140,6 +143,7 @@ public class ChessClient {
                     server.joinGame(authToken, color, g.gameID());
                     System.out.println("Joined game " + g.gameName() + " as the color " + color);
                     drawBoard(color);
+                    startGameplay(g.gameID(), color, false);
 
                 } catch (NumberFormatException nfe) {
                     System.out.println("Please enter a valid number");
@@ -159,12 +163,14 @@ public class ChessClient {
 
                     if (idx < 1 || idx > lastGameList.size()) {
                         System.out.println("Invalid game number");
+                        
                         break;
                     }
                     GameData g = lastGameList.get(idx - 1);
                     server.joinGame(authToken, "observe", g.gameID());
                     System.out.println("Observing game: " + g.gameName());
                     drawBoard("WHITE"); // Observers see white perspective
+                    startGameplay(g.gameID(), "WHITE", true);
                 } catch (NumberFormatException nfe) {
                     System.out.println("Please enter a valid number.");
                 } catch (Exception ex) {
@@ -173,6 +179,18 @@ public class ChessClient {
             }
             default -> System.out.println("Unknown command. Type 'help' for available commands.");
         }
+    }
+
+    private void startGameplay(int gameId, String color, boolean observer) {
+            gameplayClient = new GameplayClient(server.toString());
+
+            gameplayClient.connect(authToken,gameId, game -> {currentGame = game; drawBoard(color);},
+                    notification -> System.out.println("Notice " + notification),
+                    error -> System.out.println("Error " + error));
+            gameplayLoop(color,observer);
+    }
+
+    private void gameplayLoop(String color, boolean observer) {
     }
 
     private void printPostHelp() {
