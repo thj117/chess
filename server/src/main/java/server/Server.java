@@ -178,6 +178,8 @@ public class Server {
         var auth = dao.getAuth(authToken).orElseThrow(() -> new Exception("Invalid authToken"));
         String username = auth.username();
         var gameData = dao.getGame(gameId).orElseThrow(() -> new Exception("Game doesn't exist"));
+        ChessGame game = gameData.game();
+        broadcastToAll(gameId, ServerMessage.notification(username + " resigned."));
     }
 
     private void handleLeave(WsContext ctx, UserGameCommand command) throws Exception {
