@@ -140,7 +140,7 @@ public class Server {
             ws.onMessage(ctx-> {
                 var json = ctx.message();
                 UserGameCommand command = gson.fromJson(json, UserGameCommand.class);
-
+                handleCommand(ctx, command);
             });
 
             ws.onClose(ctx->{
@@ -153,9 +153,33 @@ public class Server {
                 }
             });
 
+            ws.onError(ctx->{
+                System.out.println("Error: " +ctx.error());
+            });
 
         });
     }
+
+    private void handleCommand(WsContext ctx, UserGameCommand command){
+        switch (command.getCommandType()){
+            case CONNECT -> handleConnect(ctx, command);
+            case MAKE_MOVE -> handleMakeMove(ctx, command);
+            case LEAVE -> handleLeave(ctx, command);
+            case RESIGN -> handleResign(ctx, command);
+        }
+    }
+
+    private void handleResign(WsContext ctx, UserGameCommand command) {
+    }
+
+    private void handleLeave(WsContext ctx, UserGameCommand command) {
+    }
+
+    private void handleMakeMove(WsContext ctx, UserGameCommand command) {
+    }
+
+    private void handleConnect(WsContext ctx,UserGameCommand command){}
+
     public int run(int desiredPort) {
         javalin.start(desiredPort);
         return javalin.port();
