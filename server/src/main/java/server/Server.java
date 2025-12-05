@@ -202,7 +202,17 @@ public class Server {
         broadcastToOthers(gameId, ctx, ServerMessage.notification(Text));
     }
 
-    private void broadcastToOthers(int gameId, WsContext ctx, ServerMessage notification) {
+    private void broadcastToOthers(int gameId, WsContext ctx, ServerMessage message) {
+        var set = gameSession.get(gameId);
+        if (set == null){
+            return;
+        }
+        String json = gson.toJson(message);
+        for (var c : set){
+            if (c != ctx){
+                c.send(json);
+            }
+        }
     }
 
 
