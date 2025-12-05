@@ -77,4 +77,23 @@ public class GameplayClient implements WebSocket.Listener {
         WebSocket.Listener.super.onOpen(webSocket);
     }
 
+    @Override
+    public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
+        String json = data.toString();
+        ServerMessage msg = gson.fromJson(json, ServerMessage.class);
+
+        switch (msg.getServerMessageType()) {
+            case LOAD_GAME -> {
+                if (onGameLoad != null) onGameLoad.accept(msg.getGame());
+            }
+            case ERROR -> {
+                if (onError != null) onError.accept(msg.getErrorMessage());
+            }
+            case NOTIFICATION -> {
+                if (onNotification != null) onNotification.accept(msg.getMessage());
+            }
+        }
+        return WebSocket.Listener.super.onText(webSocket, data, last);
+    }
+
 }
