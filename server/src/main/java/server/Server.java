@@ -161,7 +161,7 @@ public class Server {
         });
     }
 
-    private void handleCommand(WsContext ctx, UserGameCommand command){
+    private void handleCommand(WsContext ctx, UserGameCommand command) throws Exception {
         switch (command.getCommandType()){
             case CONNECT -> handleConnect(ctx, command);
             case MAKE_MOVE -> handleMakeMove(ctx, command);
@@ -179,13 +179,32 @@ public class Server {
     private void handleMakeMove(WsContext ctx, UserGameCommand command) {
     }
 
-    private void handleConnect(WsContext ctx,UserGameCommand command){
+    private void handleConnect(WsContext ctx,UserGameCommand command) throws Exception {
+        String authToken = command.getAuthToken();
         int gameId = command.getGameID();
-        gameSession.computeIfAbsent(gameId, k -> new HashSet<>()).add(ctx);
+        var auth = dao.getAuth(authToken).orElseThrow(() -> new Exception("Invalid authToken"));
+        String username = auth.username();
+        var gameData = dao.getGame(gameId).orElseThrow(() -> new Exception("Game doesn't exist"));
+
         toGame.put(ctx, gameId);
-        var loadMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
+        gameSession.computeIfAbsent(gameId, k -> new HashSet<>()).add(ctx);
+        var loadMsg = ServerMessage.loadGame(gameData.game());
         ctx.send(gson.toJson(loadMsg));
+
+        String color = null;
+        if (username.equals(gameData.whiteUsername())) color = "white";
+        else if (username.equals(gameData.blackUsername())) color = "black";
+
+        String Text = (color != null)
+                ? username + "connected as : " + color
+                : username + "connected as observer";
+        
+        broadcastToOthers(gameId, ctx, ServerMessage.notification(Text));
     }
+
+    private void broadcastToOthers(int gameId, WsContext ctx, ServerMessage notification) {
+    }
+
 
     public int run(int desiredPort) {
         javalin.start(desiredPort);
