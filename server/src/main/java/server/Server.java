@@ -1,8 +1,10 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.*;
 import io.javalin.json.JavalinGson;
+import model.GameData;
 import service.*;
 import io.javalin.Javalin;
 
@@ -189,9 +191,67 @@ public class Server {
     private void handleMakeMove(WsContext ctx, UserGameCommand command) throws Exception {
         String authToken = command.getAuthToken();
         int gameId = command.getGameID();
+        var move = command.getMove();
+
         var auth = dao.getAuth(authToken).orElseThrow(() -> new Exception("Invalid authToken"));
         String username = auth.username();
         var gameData = dao.getGame(gameId).orElseThrow(() -> new Exception("Game doesn't exist"));
+
+        ChessGame game = gameData.game();
+
+        ChessGame.TeamColor playerColor = null;
+        if (username.equals(gameData.whiteUsername())) playerColor = ChessGame.TeamColor.WHITE;
+        else if (username.equals(gameData.blackUsername())) {
+            playerColor = ChessGame.TeamColor.BLACK;
+        }
+
+        if (playerColor == null){
+            ctx.send(gson.toJson(ServerMessage.error("Error: observers cannot move")));
+            return;
+        }
+
+        if (game.getTeamTurn() != playerColor) {
+            ctx.send(gson.toJson(ServerMessage.error("Error: not your turn")));
+            return;
+        }
+
+        try {
+            game.makeMove(move);
+        } catch (Exception e) {
+            ctx.send(gson.toJson(ServerMessage.error("Error: illegal move")));
+            return;
+        }
+        GameData updated = new GameData(gameData.gameID(),
+                gameData.whiteUsername(), gameData.blackUsername(),
+                gameData.gameName(), game);
+        dao.updateGame(updated);
+        
+        broadcastToAll(gameId, ServerMessage.loadGame(game));
+        String desc = username + " moved from " +
+                move.getStartPosition().getRow() + "," +
+                move.getStartPosition().getColumn() + " to " +
+                move.getEndPosition().getRow() + "," +
+                move.getEndPosition().getColumn();
+
+        broadcastToOthers(gameId, ctx, ServerMessage.notification(desc));
+        ChessGame.TeamColor opponent =
+                (playerColor == ChessGame.TeamColor.WHITE)
+                        ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
+
+        if (game.isInCheckmate(opponent)) {
+            broadcastToAll(gameId, ServerMessage.notification(opponent + " is in checkmate"));
+        } else if (game.isInCheck(opponent)) {
+            broadcastToAll(gameId, ServerMessage.notification(opponent + " is in check"));
+        }
+    }
+
+    private void broadcastToAll(int gameId, ServerMessage message) {
+        var set = gameSession.get(gameId);
+        if (set == null) return;
+        String json = gson.toJson(message);
+        for (var c : set) {
+            c.send(json);
+        }
     }
 
     private void handleConnect(WsContext ctx,UserGameCommand command) throws Exception {
