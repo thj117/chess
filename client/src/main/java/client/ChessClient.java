@@ -1,14 +1,13 @@
 package client;
 
 import chess.ChessGame;
+import chess.ChessMove;
 import chess.ChessPiece;
 import chess.ChessPosition;
 import client.requests.GameplayClient;
 import model.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class ChessClient {
     private final ServerFacade server;
@@ -219,12 +218,32 @@ public class ChessClient {
                 case "redraw" -> {
                     drawBoard(color);
                 }
-                case "move" -> {}
-                case "highlight" -> {}
-                case "resign" -> {}
+                case "move" -> {
+                    if (observer){
+                        System.out.println("Observer can't move, command for players only");
+                        break;
+                    }
+                    handleMakeMove(color);
+                }
+                case "highlight" -> {
+                    handleHighlight(color);
+                }
+                case "resign" -> {
+                    if (observer) {
+                        System.out.println("Observer can not resign");
+                        break;
+                    }
+                    System.out.println("Are you sure you want to resign? (yes/no): ");
+                    if (scanner.nextLine().trim().equalsIgnoreCase("yes")){
+                        gameplayClient.resign();
+                    }
+                    if (!scanner.nextLine().trim().equalsIgnoreCase("no")){
+                        System.out.println("I'll take that as a no, keep playing ");
+                    }
+                }
                 case "leave" -> {
                     gameplayClient.leave();
-                    System.out.print("Leaving game");
+                    System.out.println("Leaving game");
                     return;
                 }
                 default -> {
@@ -233,6 +252,71 @@ public class ChessClient {
             }
         }
     }
+
+    private void handleHighlight(String color) {
+        try{
+            System.out.println("Enter start piece position: ");
+            String input = scanner.nextLine().trim();
+            ChessPosition pos = parsePos(input);
+            var moves = currentGame.validMoves(pos);
+            Set<ChessPosition> highlights = new HashSet<>();
+            highlights.add(pos);
+            for (var m: moves){
+                highlights.add(m.getEndPosition());
+            }
+            drawBoardWithHighlights(color, highlights);
+        } catch (Exception e) {
+            System.out.println("Not valid position" + e.getMessage());
+        }
+    }
+
+    private ChessPosition parsePos(String input) {
+        if (input == null) {
+            throw new IllegalArgumentException("Position cannot be null");
+        }
+
+        input = input.trim().toLowerCase();
+
+        if (input.length() != 2) {
+            throw new IllegalArgumentException("Position must be like e2 (file + rank)");
+        }
+
+        char file = input.charAt(0);
+        char rankChar = input.charAt(1);
+
+        if (file < 'a' || file > 'h') {
+            throw new IllegalArgumentException("File must be a–h");
+        }
+        if (rankChar < '1' || rankChar > '8') {
+            throw new IllegalArgumentException("Rank must be 1–8");
+        }
+
+        int col = file - 'a' + 1;
+        int row = rankChar - '0';
+
+        return new ChessPosition(row, col);
+    }
+
+
+    private void drawBoardWithHighlights(String color, Set<ChessPosition> highlights) {
+    }
+
+    private void handleMakeMove(String color) {
+        try {
+            System.out.println("Enter start position: ");
+            String origin = scanner.nextLine().trim();
+            System.out.println("Enter end position: ");
+            String moved = scanner.nextLine().trim();
+
+            ChessPosition start = parsePos(origin);
+            ChessPosition end = parsePos(moved);
+            ChessMove move = new ChessMove(start, end, null);
+            gameplayClient.makeMove(move);
+        } catch (Exception e){
+            System.out.println("Not valid input:  " + e.getMessage());
+        }
+    }
+
 
     private void printPostHelp() {
         System.out.println("""
