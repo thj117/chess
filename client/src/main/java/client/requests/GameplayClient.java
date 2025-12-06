@@ -5,7 +5,6 @@ import websocket.messages.ServerMessage;
 import websocket.commands.UserGameCommand;
 import chess.ChessGame;
 import chess.ChessMove;
-import chess.ChessPosition;
 
 import java.net.URI;
 import java.net.http.HttpClient;

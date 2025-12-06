@@ -3,9 +3,11 @@ package server;
 import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.*;
+import io.javalin.http.Context;
 import io.javalin.json.JavalinGson;
 import io.javalin.websocket.WsCloseContext;
 import model.GameData;
+import org.jetbrains.annotations.NotNull;
 import service.*;
 import io.javalin.Javalin;
 
@@ -46,32 +48,10 @@ public class Server {
                 ctx.status(500).json(Map.of("message", "Error: " + ex.getMessage()));
             }
         });
-        javalin.post("/user", ctx -> {  // Register
-            try {
-                RegisterRequest req = gson.fromJson(ctx.body(), RegisterRequest.class);
-                RegisterResult res = userService.register(req);
-                ctx.status(200).json(res);
-            } catch (BadRequestException e) {
-                ctx.status(400).json(Map.of("message", "Error: bad request"));
-            } catch (AlreadyTakenException e) {
-                    ctx.status(403).json(Map.of("message", "Error: already taken"));
-            } catch (Exception e) {
-                ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
-            }
-        });
-        javalin.post("/session", ctx -> { // Login
-            try {
-                LoginRequest req = gson.fromJson(ctx.body(), LoginRequest.class);
-                LoginResult result = userService.login(req);
-                ctx.status(200).json(result);
-            } catch (BadRequestException e) {
-                ctx.status(400).json((Map.of("message", "Error: bad request")));
-            } catch (UnauthorizedException e) {
-                ctx.status(401).json(Map.of("message", "Error: " + e.getMessage()));
-            } catch (Exception e) {
-                ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
-            }
-        });
+        // Register
+        javalin.post("/user", this::registerEndpoint);
+        // Login
+        javalin.post("/session", this::loginEndpoint);
         javalin.delete("/session", ctx -> { // Logout
             try{
                 String token = ctx.header("authorization");
@@ -94,28 +74,9 @@ public class Server {
             } catch (Exception e) {ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
         });
-        javalin.put("/game", ctx -> {  // Join Game
-            try {
-                String token = ctx.header("authorization");
-                JoinGameRequest req = gson.fromJson(ctx.body(), JoinGameRequest.class);
-
-                if (req.playerColor() == null){
-                    throw new BadRequestException("invalid color");
-                } if (req.playerColor().equals("observe")){
-                    gameService.addObserver(token, req.gameID());
-                    ctx.status(200).json(Map.of("message", "Observing game"));
-                }
-                else {
-                    gameService.joinGame(token, req);
-                    ctx.status(200).json(Map.of("message", "Joined game"));
-                }
-            } catch (BadRequestException e) {ctx.status(400).json(Map.of("message", "Error: bad request"));
-            } catch (UnauthorizedException e) {ctx.status(401).json(Map.of("message", "Error: unauthorized"));
-            } catch (AlreadyTakenException e) { ctx.status(403).json(Map.of("message", "Error: already taken"));
-            } catch (Exception e) {ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
-            }
-        });
-    javalin.get("/game", ctx -> {  // List Games
+        // Join Game
+        javalin.put("/game", this::joinGameEndpoint);
+        javalin.get("/game", ctx -> {  // List Games
             try {
                 String token = ctx.header("authorization");
                 ListGamesResult res = gameService.listGames(token);
@@ -138,6 +99,56 @@ public class Server {
             });
             ws.onError(ctx-> System.out.println("Error: " +ctx.error()));
         });
+    }
+
+    private void joinGameEndpoint(@NotNull Context ctx) {
+        try {
+            String token = ctx.header("authorization");
+            JoinGameRequest req = gson.fromJson(ctx.body(), JoinGameRequest.class);
+
+            if (req.playerColor() == null){
+                throw new BadRequestException("invalid color");
+            } if (req.playerColor().equals("observe")){
+                gameService.addObserver(token, req.gameID());
+                ctx.status(200).json(Map.of("message", "Observing game"));
+            }
+            else {
+                gameService.joinGame(token, req);
+                ctx.status(200).json(Map.of("message", "Joined game"));
+            }
+        } catch (BadRequestException e) {ctx.status(400).json(Map.of("message", "Error: bad request"));
+        } catch (UnauthorizedException e) {ctx.status(401).json(Map.of("message", "Error: unauthorized"));
+        } catch (AlreadyTakenException e) { ctx.status(403).json(Map.of("message", "Error: already taken"));
+        } catch (Exception e) {ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
+        }
+    }
+
+    private void loginEndpoint(@NotNull Context ctx) {
+        try {
+            LoginRequest req = gson.fromJson(ctx.body(), LoginRequest.class);
+            LoginResult result = userService.login(req);
+            ctx.status(200).json(result);
+        } catch (BadRequestException e) {
+            ctx.status(400).json((Map.of("message", "Error: bad request")));
+        } catch (UnauthorizedException e) {
+            ctx.status(401).json(Map.of("message", "Error: " + e.getMessage()));
+        } catch (Exception e) {
+            ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
+        }
+    }
+
+    private void registerEndpoint(@NotNull Context ctx) {
+        try {
+            RegisterRequest req = gson.fromJson(ctx.body(), RegisterRequest.class);
+            RegisterResult res = userService.register(req);
+            ctx.status(200).json(res);
+        } catch (BadRequestException e) {
+            ctx.status(400).json(Map.of("message", "Error: bad request"));
+        } catch (AlreadyTakenException e) {
+            ctx.status(403).json(Map.of("message", "Error: already taken"));
+        } catch (Exception e) {
+            ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
+        }
     }
 
     private void sweep() throws DataAccessException {
