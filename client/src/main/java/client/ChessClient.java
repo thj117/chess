@@ -417,8 +417,12 @@ public class ChessClient {
                 boolean lightSquare = ((row + (col - 'a' + 1)) % 2 == 0);
                 String bg = lightSquare ? DARK : LIGHT;
 
-                if (piece != null) System.out.print(bg + pieceToChar(piece) + RESET);
-                else System.out.print(bg + "   " + RESET);
+                if (piece != null) {
+                    System.out.print(bg + pieceToChar(piece) + RESET);
+                }
+                else {
+                    System.out.print(bg + "   " + RESET);
+                }
             }
             System.out.println();
         }

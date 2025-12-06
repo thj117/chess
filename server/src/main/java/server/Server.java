@@ -4,6 +4,7 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.*;
 import io.javalin.json.JavalinGson;
+import io.javalin.websocket.WsCloseContext;
 import model.GameData;
 import service.*;
 import io.javalin.Javalin;
@@ -39,10 +40,7 @@ public class Server {
         });
         javalin.delete("/db", ctx -> { // clear DB
             try {
-                gameService.clear();
-                gameSession.clear();
-                toGame.clear();
-                finishedGames.clear();
+                sweep();
                 ctx.status(200).result("{}");
             } catch (Exception ex) {
                 ctx.status(500).json(Map.of("message", "Error: " + ex.getMessage()));
@@ -129,26 +127,32 @@ public class Server {
             }
         });
         javalin.ws("/ws", ws -> {
-            ws.onConnect(ctx -> {
-                System.out.println("WS connected: " + ctx.sessionId());
-                    });
+            ws.onConnect(ctx -> System.out.println("WS connected: " + ctx.sessionId()));
             ws.onMessage(ctx-> {
                 var json = ctx.message();
                 UserGameCommand command = gson.fromJson(json, UserGameCommand.class);
                 handleCommand(ctx, command);
             });
-            ws.onClose(ctx->{
-                Integer gameId = toGame.remove(ctx);
-                if (gameId != null){
-                    var set = gameSession.get(gameId);
-                    if (set != null){set.remove(ctx);
-                    }
-                }
+            ws.onClose(ctx->{Integer gameId = toGame.remove(ctx);
+                checkGameId(gameId, ctx);
             });
-            ws.onError(ctx->{
-                System.out.println("Error: " +ctx.error());
-            });
+            ws.onError(ctx-> System.out.println("Error: " +ctx.error()));
         });
+    }
+
+    private void sweep() throws DataAccessException {
+        gameService.clear();
+        gameSession.clear();
+        toGame.clear();
+        finishedGames.clear();
+    }
+
+    private void checkGameId(Integer gameId, WsCloseContext ctx) {
+        if (gameId != null){
+            var set = gameSession.get(gameId);
+            if (set != null){set.remove(ctx);
+            }
+        }
     }
 
     private void handleCommand(WsContext ctx, UserGameCommand command) throws Exception {
@@ -199,8 +203,6 @@ public class Server {
             );
             dao.updateGame(updated);
             broadcastToAll(gameId, ServerMessage.notification(username + " resigned."));
-        } catch (DataAccessException exception){
-                ctx.send(gson.toJson(ServerMessage.error("Error: " + exception.getMessage())));
         } catch (Exception e) {
                 ctx.send(gson.toJson(ServerMessage.error("Error: " + e.getMessage())));
         }
@@ -303,14 +305,12 @@ public class Server {
             } else if (game.isInCheck(opponent)) {
                 broadcastToAll(gameId, ServerMessage.notification(opponent + " is in check"));
             }
-        } catch (DataAccessException exception){
-            ctx.send(gson.toJson(ServerMessage.error("Error: " + exception.getMessage())));
         } catch (Exception e) {
             ctx.send(gson.toJson(ServerMessage.error("Error: " + e.getMessage())));
         }
     }
 
-    private void handleConnect(WsContext ctx,UserGameCommand command) throws Exception {
+    private void handleConnect(WsContext ctx,UserGameCommand command) {
         try {
             String authToken = command.getAuthToken();
             int gameId = command.getGameID();
@@ -341,8 +341,6 @@ public class Server {
                     : username + "connected as observer";
 
             broadcastToOthers(gameId, ctx, ServerMessage.notification(text));
-        } catch (DataAccessException exception) {
-            ctx.send(gson.toJson(ServerMessage.error("Error: " + exception.getMessage())));
         } catch (Exception e) {
             ctx.send(gson.toJson(ServerMessage.error("Error: " + e.getMessage())));
         }

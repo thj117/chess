@@ -84,13 +84,19 @@ public class GameplayClient implements WebSocket.Listener {
 
         switch (msg.getServerMessageType()) {
             case LOAD_GAME -> {
-                if (onGameLoad != null) onGameLoad.accept(msg.getGame());
+                if (onGameLoad != null) {
+                    onGameLoad.accept(msg.getGame());
+                }
             }
             case ERROR -> {
-                if (onError != null) onError.accept(msg.getErrorMessage());
+                if (onError != null) {
+                    onError.accept(msg.getErrorMessage());
+                }
             }
             case NOTIFICATION -> {
-                if (onNotification != null) onNotification.accept(msg.getMessage());
+                if (onNotification != null) {
+                    onNotification.accept(msg.getMessage());
+                }
             }
         }
         return WebSocket.Listener.super.onText(webSocket, data, last);
