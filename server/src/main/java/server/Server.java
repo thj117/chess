@@ -265,26 +265,37 @@ public class Server {
 
 
     private void handleConnect(WsContext ctx,UserGameCommand command) throws Exception {
-        String authToken = command.getAuthToken();
-        int gameId = command.getGameID();
-        var auth = dao.getAuth(authToken).orElseThrow(() -> new Exception("Invalid authToken"));
-        String username = auth.username();
-        var gameData = dao.getGame(gameId).orElseThrow(() -> new Exception("Game doesn't exist"));
+        try {
+            String authToken = command.getAuthToken();
+            int gameId = command.getGameID();
 
-        toGame.put(ctx, gameId);
-        gameSession.computeIfAbsent(gameId, k -> new HashSet<>()).add(ctx);
-        var loadMsg = ServerMessage.loadGame(gameData.game());
-        ctx.send(gson.toJson(loadMsg));
+            if (authToken == null || gameId == 0) {
+                ctx.send(gson.toJson(ServerMessage.error("Error: missing authToken or gameID")));
+                return;
+            }
+            var auth = dao.getAuth(authToken).orElseThrow(() -> new DataAccessException("Invalid authToken"));
+            String username = auth.username();
+            var gameData = dao.getGame(gameId).orElseThrow(() -> new DataAccessException("Game doesn't exist"));
 
-        String color = null;
-        if (username.equals(gameData.whiteUsername())) color = "white";
-        else if (username.equals(gameData.blackUsername())) color = "black";
+            toGame.put(ctx, gameId);
+            gameSession.computeIfAbsent(gameId, k -> new HashSet<>()).add(ctx);
+            var loadMsg = ServerMessage.loadGame(gameData.game());
+            ctx.send(gson.toJson(loadMsg));
 
-        String Text = (color != null)
-                ? username + "connected as : " + color
-                : username + "connected as observer";
-        
-        broadcastToOthers(gameId, ctx, ServerMessage.notification(Text));
+            String color = null;
+            if (username.equals(gameData.whiteUsername())) color = "white";
+            else if (username.equals(gameData.blackUsername())) color = "black";
+
+            String Text = (color != null)
+                    ? username + "connected as : " + color
+                    : username + "connected as observer";
+
+            broadcastToOthers(gameId, ctx, ServerMessage.notification(Text));
+        } catch (DataAccessException exception) {
+            ctx.send(gson.toJson(ServerMessage.error("Error: " + exception.getMessage())));
+        } catch (Exception e) {
+            ctx.send(gson.toJson(ServerMessage.error("Error: " + e.getMessage())));
+        }
     }
 
     private void broadcastToOthers(int gameId, WsContext ctx, ServerMessage message) {

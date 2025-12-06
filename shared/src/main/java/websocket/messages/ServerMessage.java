@@ -38,9 +38,9 @@ public class ServerMessage {
         return msg;
     }
 
-    public static ServerMessage error(String message){
+    public static ServerMessage error(String errorMessage){
         ServerMessage msg = new ServerMessage(ServerMessageType.ERROR);
-        msg.message = message;
+        msg.errorMessage = errorMessage;
         return msg;
     }
 

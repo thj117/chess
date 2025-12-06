@@ -299,7 +299,54 @@ public class ChessClient {
 
 
     private void drawBoardWithHighlights(String color, Set<ChessPosition> highlights) {
+        ChessGame game = (currentGame != null) ? currentGame : new ChessGame();
+        var board = game.getBoard();
+
+        boolean whitePerspective = color.equalsIgnoreCase("WHITE");
+
+        int startRow = whitePerspective ? 8 : 1;
+        int endRow   = whitePerspective ? 1 : 8;
+        int rowStep  = whitePerspective ? -1 : 1;
+
+        char startCol = whitePerspective ? 'a' : 'h';
+        char endCol   = whitePerspective ? 'h' : 'a';
+        int colStep   = whitePerspective ? 1 : -1;
+
+        for (int row = startRow; row != endRow + rowStep; row += rowStep) {
+            System.out.print(row + " ");
+            for (char col = startCol; col != endCol + colStep; col += colStep) {
+
+                ChessPosition pos = new ChessPosition(row, col - 'a' + 1);
+                ChessPiece piece = board.getPiece(pos);
+
+                boolean lightSquare = ((row + (col - 'a' + 1)) % 2 == 0);
+                boolean isHighlighted = highlights != null && highlights.contains(pos);
+
+                String bg;
+                if (isHighlighted) {
+                    bg = lightSquare ? LIGHT_HIGHLIGHT : DARK_HIGHLIGHT;
+                } else {
+                    // keep your original mapping here
+                    bg = lightSquare ? DARK : LIGHT;
+                }
+
+                if (piece != null) {
+                    System.out.print(bg + pieceToChar(piece) + RESET);
+                } else {
+                    System.out.print(bg + "   " + RESET);
+                }
+            }
+            System.out.println();
+        }
+
+        System.out.print("  ");
+        for (char col = startCol; col != endCol + colStep; col += (char) colStep) {
+            System.out.print(" " + col + " ");
+        }
+        System.out.println();
     }
+
+
 
     private void handleMakeMove(String color) {
         try {
@@ -343,7 +390,8 @@ public class ChessClient {
     public static final String LIGHT = "\u001B[47m";
     public static final String DARK = "\u001B[100m";
     public static final String RESET = "\u001B[0m";
-
+    public static final String LIGHT_HIGHLIGHT = "\u001b[43m"; // yellow-ish
+    public static final String DARK_HIGHLIGHT  = "\u001b[42m"; // green-ish
 
     private void drawBoard(String Perspective) {
         ChessGame game = new ChessGame();
