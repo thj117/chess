@@ -18,13 +18,13 @@ public class ChessClient {
     private List<GameData> lastGameList = new ArrayList<>();
     private GameplayClient gameplayClient;
     private ChessGame currentGame;
+    private final Scanner scanner = new Scanner(System.in);
 
     public ChessClient(int port) {
         this.server = new ServerFacade(port);
     }
 
     public void run() throws Exception {
-        Scanner scanner = new Scanner(System.in);
         System.out.println("Welcome to Chess! you can type help for a list of commands");
 
         while (running) {
@@ -191,6 +191,47 @@ public class ChessClient {
     }
 
     private void gameplayLoop(String color, boolean observer) {
+        System.out.println("""
+                GAMEPLAY COMMANDS:
+                help      - Show commands
+                redraw    - Redraw board
+                move      - Make a move (player only)
+                highlight - Highlight legal moves
+                resign    - resign a game (player only)
+                leave     - leave a game (back to menu)    
+                """);
+
+        while (true){
+            System.out.print("[game] >>> ");
+            String command = scanner.nextLine().trim();
+
+            switch (command) {
+                case "help" -> {
+                    System.out.println("""
+                help      - Show commands
+                redraw    - Redraw board
+                move      - Make a move (player only)
+                highlight - Highlight legal moves
+                resign    - resign a game (player only)
+                leave     - leave a game (back to menu)   
+                            """);
+                }
+                case "redraw" -> {
+                    drawBoard(color);
+                }
+                case "move" -> {}
+                case "highlight" -> {}
+                case "resign" -> {}
+                case "leave" -> {
+                    gameplayClient.leave();
+                    System.out.print("Leaving game");
+                    return;
+                }
+                default -> {
+                    System.out.print("Unknown command type and enter 'help' for valid commands");
+                }
+            }
+        }
     }
 
     private void printPostHelp() {
