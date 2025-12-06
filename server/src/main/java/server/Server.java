@@ -243,7 +243,6 @@ public class Server {
             var set = gameSession.get(grid);
             if (set != null) set.remove(ctx);
         }
-        ctx.send(gson.toJson(ServerMessage.notification("You left the game")));
     }
 
     private void handleMakeMove(WsContext ctx, UserGameCommand command) {
