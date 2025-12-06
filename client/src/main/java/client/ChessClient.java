@@ -141,7 +141,6 @@ public class ChessClient {
                     }
                     server.joinGame(authToken, color, g.gameID());
                     System.out.println("Joined game " + g.gameName() + " as the color " + color);
-                    drawBoard(color);
                     startGameplay(g.gameID(), color, false);
 
                 } catch (NumberFormatException nfe) {
@@ -167,8 +166,7 @@ public class ChessClient {
                     }
                     GameData g = lastGameList.get(idx - 1);
                     server.joinGame(authToken, "observe", g.gameID());
-                    System.out.println("Observing game: " + g.gameName());
-                    drawBoard("WHITE"); // Observers see white perspective
+                    System.out.println("Observing game: " + g.gameName());// Observers see white perspective
                     startGameplay(g.gameID(), "WHITE", true);
                 } catch (NumberFormatException nfe) {
                     System.out.println("Please enter a valid number.");
@@ -181,9 +179,12 @@ public class ChessClient {
     }
 
     private void startGameplay(int gameId, String color, boolean observer) {
-            gameplayClient = new GameplayClient(server.toString());
+            gameplayClient = new GameplayClient(server.getServerUrl());
 
-            gameplayClient.connect(authToken,gameId, game -> {currentGame = game; drawBoard(color);},
+            gameplayClient.connect(authToken,gameId, game -> {
+                currentGame = game;
+                System.out.println("DEBUG: received LOAD_GAME, turn = " + game.getTeamTurn());
+                drawBoard(color);},
                     notification -> System.out.println("Notice " + notification),
                     error -> System.out.println("Error " + error));
             gameplayLoop(color,observer);
@@ -201,7 +202,7 @@ public class ChessClient {
                 """);
 
         while (true){
-            System.out.print("[game] >>> ");
+            System.out.print("[game] >>> \n");
             String command = scanner.nextLine().trim();
 
             switch (command) {
@@ -236,9 +237,6 @@ public class ChessClient {
                     System.out.println("Are you sure you want to resign? (yes/no): ");
                     if (scanner.nextLine().trim().equalsIgnoreCase("yes")){
                         gameplayClient.resign();
-                    }
-                    if (!scanner.nextLine().trim().equalsIgnoreCase("no")){
-                        System.out.println("I'll take that as a no, keep playing ");
                     }
                 }
                 case "leave" -> {
@@ -299,7 +297,12 @@ public class ChessClient {
 
 
     private void drawBoardWithHighlights(String color, Set<ChessPosition> highlights) {
-        ChessGame game = (currentGame != null) ? currentGame : new ChessGame();
+        if (currentGame == null) {
+            System.out.println("No game loaded yet (cannot highlight).");
+            return;
+        }
+
+        ChessGame game = currentGame;
         var board = game.getBoard();
 
         boolean whitePerspective = color.equalsIgnoreCase("WHITE");
@@ -394,8 +397,11 @@ public class ChessClient {
     public static final String DARK_HIGHLIGHT  = "\u001b[42m"; // green-ish
 
     private void drawBoard(String perspective) {
-        ChessGame game = new ChessGame();
-        var board = game.getBoard();
+        if (currentGame == null) {
+            System.out.println("No game loaded yet (waiting for server).");
+            return;
+        }
+        var board = currentGame.getBoard();
 
         boolean whitePerspective = perspective.equalsIgnoreCase("WHITE");
 

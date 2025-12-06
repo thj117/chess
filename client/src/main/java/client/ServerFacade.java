@@ -28,6 +28,10 @@ public class ServerFacade {
         this.serverurl = "http://localhost:" + port;
     }
 
+    public String getServerUrl(){
+        return serverurl;
+    }
+
     public AuthData register(String username, String password, String email) throws Exception{
         RegisterRequest req = new RegisterRequest(username, password, email);
         var body = gson.toJson(req);

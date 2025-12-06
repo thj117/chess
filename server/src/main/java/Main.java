@@ -11,6 +11,7 @@ public class Main {
         } catch (DataAccessException e) {
             throw new RuntimeException("Failed to initialize database", e);
         }
+
         Server server = new Server();
         server.run(8080);
 
