@@ -25,6 +25,7 @@ public class Server {
     private final GameService gameService = new GameService(dao);
     private final Map<Integer, Set<WsContext>> gameSession = new HashMap<>();
     private final Map<WsContext, Integer> toGame = new HashMap<>();
+    private final Set<Integer> finishedGames = new HashSet<>();
 
     public Server() {
         try {
@@ -42,6 +43,9 @@ public class Server {
         javalin.delete("/db", ctx -> { // clear DB
             try {
                 gameService.clear();
+                gameSession.clear();
+                toGame.clear();
+                finishedGames.clear();
                 ctx.status(200).result("{}");
             } catch (Exception ex) {
                 ctx.status(500).json(Map.of("message", "Error: " + ex.getMessage()));
@@ -172,14 +176,50 @@ public class Server {
         }
     }
 
-    private void handleResign(WsContext ctx, UserGameCommand command) throws Exception {
-        String authToken = command.getAuthToken();
-        int gameId = command.getGameID();
-        var auth = dao.getAuth(authToken).orElseThrow(() -> new Exception("Invalid authToken"));
-        String username = auth.username();
-        var gameData = dao.getGame(gameId).orElseThrow(() -> new Exception("Game doesn't exist"));
-        ChessGame game = gameData.game();
-        broadcastToAll(gameId, ServerMessage.notification(username + " resigned."));
+    private void handleResign(WsContext ctx, UserGameCommand command) {
+        try {
+            String authToken = command.getAuthToken();
+            int gameId = command.getGameID();
+            if (authToken == null || gameId == 0) {
+                ctx.send(gson.toJson(ServerMessage.error("Error: missing authToken or gameID")));
+                return;
+            }
+            if (finishedGames.contains(gameId)) {
+                ctx.send(gson.toJson(ServerMessage.error("Error: game is already over")));
+                return;
+            }
+            var auth = dao.getAuth(authToken).orElseThrow(() -> new Exception("Invalid authToken"));
+            String username = auth.username();
+            var gameData = dao.getGame(gameId).orElseThrow(() -> new Exception("Game doesn't exist"));
+            ChessGame game = gameData.game();
+
+            String whiteUser = gameData.whiteUsername();
+            String blackUser = gameData.blackUsername();
+
+            boolean isWhite = username.equals(whiteUser);
+            boolean isBlack = username.equals(blackUser);
+
+            if (!isWhite && !isBlack) {
+                ctx.send(gson.toJson(ServerMessage.error("Error: observers cannot resign")));
+                return;
+            }
+
+            finishedGames.add(gameId);
+
+            GameData updated = new GameData(
+                    gameData.gameID(),
+                    gameData.whiteUsername(),
+                    gameData.blackUsername(),
+                    gameData.gameName(),
+                    game
+            );
+            dao.updateGame(updated);
+            broadcastToAll(gameId, ServerMessage.notification(username + " resigned."));
+        } catch (DataAccessException exception){
+                ctx.send(gson.toJson(ServerMessage.error("Error: " + exception.getMessage())));
+        } catch (Exception e) {
+                ctx.send(gson.toJson(ServerMessage.error("Error: " + e.getMessage())));
+        }
     }
 
     private void handleLeave(WsContext ctx, UserGameCommand command) throws Exception {
@@ -214,6 +254,11 @@ public class Server {
 
             if (authToken == null || gameId == 0 || move == null) {
                 ctx.send(gson.toJson(ServerMessage.error("Error: missing authToken, gameID, or move")));
+                return;
+            }
+
+            if (finishedGames.contains(gameId)) {
+                ctx.send(gson.toJson(ServerMessage.error("Error: game is over")));
                 return;
             }
 
