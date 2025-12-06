@@ -33,13 +33,10 @@ public class Server {
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize database", e);
         }
-
         javalin = Javalin.create(config -> {
             config.staticFiles.add("web");
             config.jsonMapper(new JavalinGson());
         });
-
-        //clear
         javalin.delete("/db", ctx -> { // clear DB
             try {
                 gameService.clear();
@@ -51,8 +48,7 @@ public class Server {
                 ctx.status(500).json(Map.of("message", "Error: " + ex.getMessage()));
             }
         });
-        // Register
-        javalin.post("/user", ctx -> {
+        javalin.post("/user", ctx -> {  // Register
             try {
                 RegisterRequest req = gson.fromJson(ctx.body(), RegisterRequest.class);
                 RegisterResult res = userService.register(req);
@@ -65,8 +61,7 @@ public class Server {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
         });
-        // Login
-        javalin.post("/session", ctx -> {
+        javalin.post("/session", ctx -> { // Login
             try {
                 LoginRequest req = gson.fromJson(ctx.body(), LoginRequest.class);
                 LoginResult result = userService.login(req);
@@ -79,8 +74,7 @@ public class Server {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
         });
-        // Logout
-        javalin.delete("/session", ctx -> {
+        javalin.delete("/session", ctx -> { // Logout
             try{
                 String token = ctx.header("authorization");
                 userService.logout(token);
@@ -91,8 +85,7 @@ public class Server {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
         });
-        // Create Game
-        javalin.post("/game", ctx -> {
+        javalin.post("/game", ctx -> { // Create Game
             try {
                 String token = ctx.header("authorization");
                 CreateGameRequest req = gson.fromJson(ctx.body(), CreateGameRequest.class);
@@ -103,8 +96,7 @@ public class Server {
             } catch (Exception e) {ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
         });
-        // Join Game
-        javalin.put("/game", ctx -> {
+        javalin.put("/game", ctx -> {  // Join Game
             try {
                 String token = ctx.header("authorization");
                 JoinGameRequest req = gson.fromJson(ctx.body(), JoinGameRequest.class);
@@ -125,8 +117,7 @@ public class Server {
             } catch (Exception e) {ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
         });
-        // List Games
-        javalin.get("/game", ctx -> {
+    javalin.get("/game", ctx -> {  // List Games
             try {
                 String token = ctx.header("authorization");
                 ListGamesResult res = gameService.listGames(token);
@@ -137,33 +128,26 @@ public class Server {
                 ctx.status(500).json(Map.of("message", "Error: " + e.getMessage()));
             }
         });
-
         javalin.ws("/ws", ws -> {
-
             ws.onConnect(ctx -> {
                 System.out.println("WS connected: " + ctx.sessionId());
                     });
-
             ws.onMessage(ctx-> {
                 var json = ctx.message();
                 UserGameCommand command = gson.fromJson(json, UserGameCommand.class);
                 handleCommand(ctx, command);
             });
-
             ws.onClose(ctx->{
                 Integer gameId = toGame.remove(ctx);
                 if (gameId != null){
                     var set = gameSession.get(gameId);
-                    if (set != null){
-                        set.remove(ctx);
+                    if (set != null){set.remove(ctx);
                     }
                 }
             });
-
             ws.onError(ctx->{
                 System.out.println("Error: " +ctx.error());
             });
-
         });
     }
 
@@ -231,8 +215,12 @@ public class Server {
 
         String w = gameData.whiteUsername();
         String b = gameData.blackUsername();
-        if (username.equals(w)) w = null;
-        if (username.equals(b)) b = null;
+        if (username.equals(w)) {
+            w = null;
+        }
+        if (username.equals(b)) {
+            b = null;
+        }
 
         GameData updated = new GameData(gameData.gameID(), w, b, gameData.gameName(), gameData.game());
         dao.updateGame(updated);
@@ -241,7 +229,9 @@ public class Server {
         Integer grid = toGame.remove(ctx);
         if (grid != null) {
             var set = gameSession.get(grid);
-            if (set != null) set.remove(ctx);
+            if (set != null) {
+                set.remove(ctx);
+            }
         }
     }
 
@@ -268,7 +258,9 @@ public class Server {
             ChessGame game = gameData.game();
 
             ChessGame.TeamColor playerColor = null;
-            if (username.equals(gameData.whiteUsername())) playerColor = ChessGame.TeamColor.WHITE;
+            if (username.equals(gameData.whiteUsername())) {
+                playerColor = ChessGame.TeamColor.WHITE;
+            }
             else if (username.equals(gameData.blackUsername())) {
                 playerColor = ChessGame.TeamColor.BLACK;
             }
@@ -337,14 +329,18 @@ public class Server {
             ctx.send(gson.toJson(loadMsg));
 
             String color = null;
-            if (username.equals(gameData.whiteUsername())) color = "white";
-            else if (username.equals(gameData.blackUsername())) color = "black";
+            if (username.equals(gameData.whiteUsername())) {
+                color = "white";
+            }
+            else if (username.equals(gameData.blackUsername())) {
+                color = "black";
+            }
 
-            String Text = (color != null)
+            String text = (color != null)
                     ? username + "connected as : " + color
                     : username + "connected as observer";
 
-            broadcastToOthers(gameId, ctx, ServerMessage.notification(Text));
+            broadcastToOthers(gameId, ctx, ServerMessage.notification(text));
         } catch (DataAccessException exception) {
             ctx.send(gson.toJson(ServerMessage.error("Error: " + exception.getMessage())));
         } catch (Exception e) {
@@ -369,7 +365,9 @@ public class Server {
 
     private void broadcastToAll(int gameId, ServerMessage message) {
         var set = gameSession.get(gameId);
-        if (set == null) return;
+        if (set == null) {
+            return;
+        }
         String json = gson.toJson(message);
         for (var c : set) {
             c.send(json);

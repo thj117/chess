@@ -393,11 +393,11 @@ public class ChessClient {
     public static final String LIGHT_HIGHLIGHT = "\u001b[43m"; // yellow-ish
     public static final String DARK_HIGHLIGHT  = "\u001b[42m"; // green-ish
 
-    private void drawBoard(String Perspective) {
+    private void drawBoard(String perspective) {
         ChessGame game = new ChessGame();
         var board = game.getBoard();
 
-        boolean whitePerspective = Perspective.equalsIgnoreCase("WHITE");
+        boolean whitePerspective = perspective.equalsIgnoreCase("WHITE");
 
         int startRow = whitePerspective ? 8 : 1;
         int endRow = whitePerspective ? 1 : 8;
