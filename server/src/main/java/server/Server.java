@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import service.*;
 import io.javalin.Javalin;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -39,6 +40,11 @@ public class Server {
         javalin = Javalin.create(config -> {
             config.staticFiles.add("web");
             config.jsonMapper(new JavalinGson());
+
+            config.jetty.modifyWebSocketServletFactory(wsFactory -> {
+                // Disable idle timeout (or make it very large)
+                wsFactory.setIdleTimeout(Duration.ZERO);
+            });
         });
         javalin.delete("/db", ctx -> { // clear DB
             try {
@@ -184,7 +190,7 @@ public class Server {
                 return;
             }
             if (finishedGames.contains(gameId)) {
-                ctx.send(gson.toJson(ServerMessage.error("Error: game is already over")));
+                ctx.send(gson.toJson(ServerMessage.error(": game is already over")));
                 return;
             }
             var auth = dao.getAuth(authToken).orElseThrow(() -> new Exception("Invalid authToken"));
@@ -250,9 +256,14 @@ public class Server {
 
     private void handleMakeMove(WsContext ctx, UserGameCommand command) {
         try {
+            System.out.println("DEBUG: handleMakeMove called for ctx=" + ctx.sessionId());
             String authToken = command.getAuthToken();
             int gameId = command.getGameID();
             var move = command.getMove();
+            System.out.println("DEBUG: move = " + move.getStartPosition().getRow() + "," +
+                    move.getStartPosition().getColumn() + " -> " +
+                    move.getEndPosition().getRow() + "," +
+                    move.getEndPosition().getColumn());
 
             if (authToken == null || gameId == 0 || move == null) {
                 ctx.send(gson.toJson(ServerMessage.error("Error: missing authToken, gameID, or move")));
@@ -287,7 +298,6 @@ public class Server {
                 ctx.send(gson.toJson(ServerMessage.error("Error: not your turn")));
                 return;
             }
-
             try {
                 game.makeMove(move);
             } catch (Exception e) {
@@ -311,10 +321,12 @@ public class Server {
                     (playerColor == ChessGame.TeamColor.WHITE)
                             ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
 
+            String opponentUser = (opponent == ChessGame.TeamColor.WHITE) ? gameData.whiteUsername() : gameData.blackUsername();
+
             if (game.isInCheckmate(opponent)) {
-                broadcastToAll(gameId, ServerMessage.notification(opponent + " is in checkmate"));
+                broadcastToAll(gameId, ServerMessage.notification(opponentUser + " is in checkmate"));
             } else if (game.isInCheck(opponent)) {
-                broadcastToAll(gameId, ServerMessage.notification(opponent + " is in check"));
+                broadcastToAll(gameId, ServerMessage.notification(opponentUser + " is in check"));
             }
         } catch (Exception e) {
             ctx.send(gson.toJson(ServerMessage.error("Error: " + e.getMessage())));
@@ -348,8 +360,8 @@ public class Server {
             }
 
             String text = (color != null)
-                    ? username + "connected as : " + color
-                    : username + "connected as observer";
+                    ? username + " connected as : " + color
+                    : username + " connected as observer";
 
             broadcastToOthers(gameId, ctx, ServerMessage.notification(text));
         } catch (Exception e) {

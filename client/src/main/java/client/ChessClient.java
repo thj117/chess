@@ -183,7 +183,6 @@ public class ChessClient {
 
             gameplayClient.connect(authToken,gameId, game -> {
                 currentGame = game;
-                System.out.println("DEBUG: received LOAD_GAME, turn = " + game.getTeamTurn());
                 drawBoard(color);},
                     notification -> System.out.println("Notice " + notification),
                     error -> System.out.println("Error " + error));
@@ -264,7 +263,7 @@ public class ChessClient {
             }
             drawBoardWithHighlights(color, highlights);
         } catch (Exception e) {
-            System.out.println("Not valid position" + e.getMessage());
+            System.out.println("Not valid position");
         }
     }
 

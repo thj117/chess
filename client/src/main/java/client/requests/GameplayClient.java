@@ -40,9 +40,12 @@ public class GameplayClient implements WebSocket.Listener {
         this.onNotification = onNotification;
         this.onError = onError;
 
+        String wsUri = serverUrl.replace("http", "ws") + "/ws";
+        System.out.println("DEBUG CLIENT connecting to: " + wsUri);
+
         this.socket = HttpClient.newHttpClient()
                 .newWebSocketBuilder()
-                .buildAsync(URI.create(serverUrl.replace("http", "ws") + "/ws"), this)
+                .buildAsync(URI.create(wsUri), this)
                 .join();
 
         // After connect, send CONNECT command
